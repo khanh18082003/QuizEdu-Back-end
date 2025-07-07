@@ -1,0 +1,43 @@
+# application-dev.yml
+# environment: development
+spring:
+  config:
+    activate:
+      on-profile: dev
+  data:
+    mongodb:
+      uri: mongodb://admin:secure@localhost:27017/quizlet?authSource=admin
+      auto-index-creation: true
+    redis:
+      host: localhost
+      port: 6379
+
+  cache:
+    type: redis
+
+# swagger config
+openapi:
+  service:
+    api-docs: quiz-edu-api-docs
+    title: Quiz-edu API
+    version: v1.0
+    server: http://localhost:${server.port}/api/v1.0
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+# jwt secret key
+jwt:
+  expirationTime: 15
+  expirationDay: 7
+  expirationTimeApp: 30
+  accessToken: 7SQerx9SoaVXIgymVZCEA3I6kloqfaZt+WJYWPUJ0Qk=
+  refreshToken: XES8dv8sa5hTheY+E51IUFcs7xkgm+cLGUNYTEaods8=
+
+admin:
+  email: locnam0312@gmail.com
+  password: admin
+  displayName: Administrator
