@@ -16,7 +16,10 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-  private static final String[] NO_AUTHENTICATION_ENDPOINTS = {"/users"};
+  private static final String[] NO_AUTHENTICATION_ENDPOINTS = {
+          "/users",
+          "/auth/verification-code",
+  };
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
