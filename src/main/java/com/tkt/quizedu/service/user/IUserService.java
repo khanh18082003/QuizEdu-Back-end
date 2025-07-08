@@ -1,9 +1,12 @@
 package com.tkt.quizedu.service.user;
 
 import com.tkt.quizedu.data.dto.request.UserCreationDTORequest;
+import com.tkt.quizedu.data.dto.response.UserBaseResponse;
 
 public interface IUserService {
-  void save(UserCreationDTORequest req);
+    UserBaseResponse save(UserCreationDTORequest req);
 
-  boolean existsUserByEmail(String email);
+    void activeUser(String userId);
+
+    boolean existsUserByEmail(String email);
 }

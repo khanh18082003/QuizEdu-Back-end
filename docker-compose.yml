@@ -1,0 +1,75 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.4
+    container_name: zookeeper
+    restart: unless-stopped
+    ports:
+      - '22181:22181'
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - default
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.4
+    container_name: kafka
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+    ports:
+      - '29092:29092'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - default
+
+  mongodb:
+    image: mongodb/mongodb-community-server:latest
+    container_name: mongodb
+    cap_add:
+      - SYS_NICE
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=secure
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+      - ./initdb.js:/docker-entrypoint-initdb.d/init.js
+    networks:
+      - default
+  redis:
+    image: redis:8.0.2
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    networks:
+      - default
+  back-end-service:
+    container_name: quiz-edu
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: khanhnguyen1808/booking-back-end-service:latest
+    env_file:
+      - prod.env
+    ports:
+      - "8080:8080"
+    networks:
+      - default
+    depends_on:
+      - mongodb
+      - redis
+networks:
+  default:
+    name: quiz-edu-network
+volumes:
+  mongo_data:

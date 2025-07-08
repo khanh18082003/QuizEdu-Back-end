@@ -1,5 +1,6 @@
 package com.tkt.quizedu.data.validator;
 
+import java.util.Arrays;
 import java.util.List;
 
 import jakarta.validation.ConstraintValidator;
@@ -12,11 +13,14 @@ public class RoleValidator implements ConstraintValidator<RoleValid, String> {
 
   @Override
   public void initialize(RoleValid constraintAnnotation) {
-    validRoles = List.of(constraintAnnotation.anyOf());
+    validRoles = Arrays.asList(constraintAnnotation.anyOf());
   }
 
   @Override
   public boolean isValid(String value, ConstraintValidatorContext context) {
+    if (value == null || value.isBlank()) {
+      return false;
+    }
     try {
       UserRole role = UserRole.valueOf(value.toUpperCase());
       return validRoles.contains(role);
