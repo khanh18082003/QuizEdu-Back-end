@@ -12,6 +12,7 @@ public enum ErrorCode {
   MESSAGE_NOT_BLANK("M001", HttpStatus.BAD_REQUEST),
   MESSAGE_INVALID_EMAIL("M002", HttpStatus.BAD_REQUEST),
   MESSAGE_PASSWORD_SIZE("M003", HttpStatus.BAD_REQUEST),
+  MESSAGE_INVALID_ARGUMENT("M004", HttpStatus.BAD_REQUEST),
   ;
 
   private final String code;

@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.tkt.quizedu.data.validator.RoleValid;
 
 import lombok.Builder;
 import lombok.With;
@@ -23,5 +24,5 @@ public record UserCreationDTORequest(
     String firstName,
     String lastName,
     @NotBlank(message = "MESSAGE_NOT_BLANK") String displayName,
-    String role)
+    @RoleValid String role)
     implements Serializable {}

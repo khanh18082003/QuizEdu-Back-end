@@ -1,6 +1,5 @@
 package com.tkt.quizedu.controller;
 
-import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
@@ -30,7 +29,6 @@ public class UserController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   SuccessApiResponse<Void> registerUser(@RequestBody @Valid UserCreationDTORequest req) {
-    log.info("Registering user with email: {}", req.email());
     userService.save(req);
     log.info("User with email {} has been registered successfully", req.email());
     return SuccessApiResponse.<Void>builder()
