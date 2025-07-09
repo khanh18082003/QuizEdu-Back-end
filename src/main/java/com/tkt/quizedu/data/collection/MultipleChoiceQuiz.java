@@ -11,7 +11,7 @@ import java.io.Serial;
 import java.util.List;
 import java.util.Map;
 
-@Document(collection = "multipleChoiceGames")
+@Document(collection = "multipleChoiceQuiz")
 @Getter
 @Setter
 @ToString
@@ -19,23 +19,21 @@ import java.util.Map;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
-public class MultipleChoiceGame extends StringIdentityCollection {
+public class MultipleChoiceQuiz extends StringIdentityCollection {
     @Serial
     private static final long serialVersionUID = -5465733518693373245L;
     @Id
     String id;
     String name;
-    boolean allowMultipleAnswers;
     List<Question> questions;
-    String GameId;
+    String QuizId;
     @Data
     public static class Question {
-        @Id
-        String id;
         @Indexed(unique = true)
         String questionText;
         String hint;
         int timeLimit;
+        boolean allowMultipleAnswers;
         int points;
         Map<String, Boolean> answers;
         List<AnswerParticipant> answerParticipants;

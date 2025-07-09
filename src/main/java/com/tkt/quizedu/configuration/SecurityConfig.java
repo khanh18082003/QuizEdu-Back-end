@@ -19,6 +19,7 @@ public class SecurityConfig {
   private static final String[] NO_AUTHENTICATION_ENDPOINTS = {
           "/users",
           "/auth/verification-code",
+          "/quizzes",
   };
 
   @Bean

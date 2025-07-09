@@ -11,7 +11,7 @@ import java.io.Serial;
 import java.time.LocalDate;
 import java.util.List;
 
-@Document(collection = "gameSessions")
+@Document(collection = "quizSessions")
 @Getter
 @Setter
 @ToString
@@ -19,12 +19,12 @@ import java.util.List;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
-public class GameSession extends StringIdentityCollection {
+public class QuizSession extends StringIdentityCollection {
     @Serial
     private static final long serialVersionUID = -5465733518693373245L;
     @Id
     String id;
-    String gameId;
+    String quizId;
     String classId;
     String teacherId;
     SessionStatus status;
