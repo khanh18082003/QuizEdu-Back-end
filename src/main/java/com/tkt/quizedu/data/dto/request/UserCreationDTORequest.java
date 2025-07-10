@@ -1,14 +1,16 @@
 package com.tkt.quizedu.data.dto.request;
 
-import com.tkt.quizedu.data.validator.RoleValid;
+import java.io.Serializable;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+
+import com.tkt.quizedu.data.validator.RoleValid;
+
 import lombok.Builder;
 import lombok.With;
-
-import java.io.Serializable;
 
 @Builder
 @With
