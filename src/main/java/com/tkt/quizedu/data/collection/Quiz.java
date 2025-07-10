@@ -1,15 +1,17 @@
 package com.tkt.quizedu.data.collection;
 
-import com.tkt.quizedu.data.base.StringIdentityCollection;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
+import java.io.Serial;
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.io.Serial;
-import java.time.LocalDate;
-import java.util.List;
+import com.tkt.quizedu.data.base.StringIdentityCollection;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Document(collection = "quiz")
 @Getter
@@ -20,19 +22,16 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 public class Quiz extends StringIdentityCollection {
-    @Serial
-    private static final long serialVersionUID = -5465733518693373245L;
+  @Serial private static final long serialVersionUID = -5465733518693373245L;
 
-    @Id
-    String id;
-    String name;
-    String description;
-    String teacherId;
-    String subjectId;
-    List<String> classIds;
+  @Id String id;
+  String name;
+  String description;
+  String teacherId;
+  String subjectId;
+  List<String> classIds;
 
-    @CreatedDate
-    LocalDate createdAt;
-    LocalDate updatedAt;
-    boolean isActive=true;
+  @CreatedDate LocalDate createdAt;
+  LocalDate updatedAt;
+  boolean isActive = true;
 }
