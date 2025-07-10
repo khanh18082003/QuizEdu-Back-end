@@ -17,9 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
   private static final String[] NO_AUTHENTICATION_ENDPOINTS = {
-          "/users",
-          "/auth/verification-code",
-          "/quizzes",
+    "/users", "/auth/verification-code", "/quizzes", "/classrooms"
   };
 
   @Bean
