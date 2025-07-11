@@ -2,7 +2,6 @@ package com.tkt.quizedu.data.collection;
 
 import java.io.Serial;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.data.annotation.Id;
@@ -23,42 +22,38 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 public class MultipleChoiceQuiz extends StringIdentityCollection {
-    @Serial
-    private static final long serialVersionUID = -5465733518693373245L;
-    @Id
-    String id;
-    String name;
-    List<Question> questions;
-    String quizId;
-    @Data
-    public static class Question {
-        UUID questionId;
-        @Indexed(unique = true)
-        String questionText;
-        String hint;
-        int timeLimit;
-        boolean allowMultipleAnswers;
-        int points;
-        List<AnswerOption> answers;
-        List<AnswerParticipant> answerParticipants;
-        @Data
-        public static class AnswerParticipant {
-            String userId;
-            String answer;
-            String correctAnswer;
-            boolean correct;
-        }
-        @Data
-        public static class AnswerOption {
-            String answerText;
-            boolean correct;
-        }
-    }
+  @Serial private static final long serialVersionUID = -5465733518693373245L;
+  @Id String id;
+  String name;
+  List<Question> questions;
+  String quizId;
+
+  @Data
+  public static class Question {
+    UUID questionId;
+
+    @Indexed(unique = true)
+    String questionText;
+
+    String hint;
+    int timeLimit;
+    boolean allowMultipleAnswers;
+    int points;
+    List<AnswerOption> answers;
+    List<AnswerParticipant> answerParticipants;
+
     @Data
     public static class AnswerParticipant {
       String userId;
       String answer;
       String correctAnswer;
-      boolean isCorrect;
+      boolean correct;
+    }
+
+    @Data
+    public static class AnswerOption {
+      String answerText;
+      boolean correct;
     }
   }
+}
