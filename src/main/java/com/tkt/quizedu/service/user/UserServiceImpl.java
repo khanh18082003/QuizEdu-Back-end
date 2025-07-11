@@ -56,4 +56,13 @@ public class UserServiceImpl implements IUserService {
   public boolean existsUserByEmail(String email) {
     return userRepository.existsUserByEmail(email);
   }
+
+  @Override
+  public UserBaseResponse getUserByEmail(String email) {
+    User user =
+        userRepository
+            .findByEmail(email)
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    return userMapper.toUserBaseResponse(user);
+  }
 }

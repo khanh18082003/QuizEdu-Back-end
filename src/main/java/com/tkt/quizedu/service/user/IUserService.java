@@ -9,4 +9,6 @@ public interface IUserService {
   void activeUser(String userId);
 
   boolean existsUserByEmail(String email);
+
+  UserBaseResponse getUserByEmail(String email);
 }
