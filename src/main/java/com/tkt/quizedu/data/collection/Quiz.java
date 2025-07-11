@@ -30,7 +30,6 @@ public class Quiz extends StringIdentityCollection {
   String teacherId;
   String subjectId;
   List<String> classIds;
-
   @CreatedDate LocalDate createdAt;
   LocalDate updatedAt;
   boolean isActive = true;

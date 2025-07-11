@@ -1,5 +1,7 @@
 package com.tkt.quizedu.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,7 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tkt.quizedu.component.Translator;
 import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
+import com.tkt.quizedu.data.dto.request.AuthenticationDTORequest;
+import com.tkt.quizedu.data.dto.request.RefreshTokenDTORequest;
 import com.tkt.quizedu.data.dto.request.VerificationCodeDTORequest;
+import com.tkt.quizedu.data.dto.response.AuthenticationResponse;
 import com.tkt.quizedu.data.dto.response.SuccessApiResponse;
 import com.tkt.quizedu.service.auth.IAuthenticationService;
 
@@ -80,6 +85,7 @@ public class AuthenticationController {
 						"status": 200,
 						"message": "Success",
 					}
+<<<<<<< HEAD
 					"""))),
         @ApiResponse(
             responseCode = "400",
@@ -126,6 +132,8 @@ public class AuthenticationController {
 						"status": 409,
 						"message": "Email already exists"
 					}
+=======
+>>>>>>> khanh/authentication_user
 					""")))
       })
   SuccessApiResponse<Void> validateVerificationCode(
@@ -136,6 +144,33 @@ public class AuthenticationController {
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
+  }
+
+  @PostMapping
+  SuccessApiResponse<AuthenticationResponse> authenticate(
+      @Valid @RequestBody AuthenticationDTORequest req, HttpServletResponse httpServletResponse) {
+    AuthenticationResponse response = authenticationService.authenticate(req, httpServletResponse);
+
+    return SuccessApiResponse.<AuthenticationResponse>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(response)
+        .build();
+  }
+
+  @PostMapping("/refresh-token")
+  SuccessApiResponse<AuthenticationResponse> refreshToken(
+      HttpServletRequest httpServletRequest, @RequestBody RefreshTokenDTORequest request) {
+    AuthenticationResponse response =
+        authenticationService.refreshToken(httpServletRequest, request.role());
+
+    return SuccessApiResponse.<AuthenticationResponse>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(response)
         .build();
   }
 }
