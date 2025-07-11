@@ -41,8 +41,10 @@ public class ClassRoomController {
         .data(response)
         .build();
   }
-    @PostMapping("/joinClassRoom")
-    public SuccessApiResponse<Boolean> joinClassRoom(@RequestBody String classRoomId, @RequestBody String studentId) {
+
+  @PostMapping("/joinClassRoom")
+  public SuccessApiResponse<Boolean> joinClassRoom(
+      @RequestBody String classRoomId, @RequestBody String studentId) {
     Boolean response = classRoomService.joinClassRoom(classRoomId, studentId);
     return SuccessApiResponse.<Boolean>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
@@ -50,15 +52,17 @@ public class ClassRoomController {
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .data(response)
         .build();
-    }
-    @PostMapping("/assignQuizToClassroom")
-    public SuccessApiResponse<Boolean> assignQuizToClassroom(@RequestBody String classRoomId, @RequestBody String quizId) {
-        Boolean response = classRoomService.assignQuizToClassroom(classRoomId, quizId);
-        return SuccessApiResponse.<Boolean>builder()
-            .code(ErrorCode.MESSAGE_SUCCESS.getCode())
-            .status(HttpStatus.OK.value())
-            .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
-            .data(response)
-            .build();
-    }
+  }
+
+  @PostMapping("/assignQuizToClassroom")
+  public SuccessApiResponse<Boolean> assignQuizToClassroom(
+      @RequestBody String classRoomId, @RequestBody String quizId) {
+    Boolean response = classRoomService.assignQuizToClassroom(classRoomId, quizId);
+    return SuccessApiResponse.<Boolean>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(response)
+        .build();
+  }
 }

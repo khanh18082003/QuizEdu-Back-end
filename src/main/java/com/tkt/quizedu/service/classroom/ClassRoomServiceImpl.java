@@ -1,5 +1,7 @@
 package com.tkt.quizedu.service.classroom;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.tkt.quizedu.data.collection.ClassRoom;
@@ -12,8 +14,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,32 +30,35 @@ public class ClassRoomServiceImpl implements IClassRoomService {
     return classRoomMapper.toClassRoomResponse(classRoomRepository.save(classRoom));
   }
 
-    @Override
-    public Boolean joinClassRoom(String classRoomId, String studentId) {
-        ClassRoom classRoom = classRoomRepository.findById(classRoomId)
-                .orElseThrow(() -> new RuntimeException("Classroom not found"));
-        List<String> studentIds = classRoom.getStudentIds();
-        if (studentIds.contains(studentId)) {
-            return false; // Student already in the classroom
-        }
-        studentIds.add(studentId);
-        classRoom.setStudentIds(studentIds);
-        classRoomRepository.save(classRoom);
-        return true; // Successfully added student to the classroom
+  @Override
+  public Boolean joinClassRoom(String classRoomId, String studentId) {
+    ClassRoom classRoom =
+        classRoomRepository
+            .findById(classRoomId)
+            .orElseThrow(() -> new RuntimeException("Classroom not found"));
+    List<String> studentIds = classRoom.getStudentIds();
+    if (studentIds.contains(studentId)) {
+      return false; // Student already in the classroom
     }
+    studentIds.add(studentId);
+    classRoom.setStudentIds(studentIds);
+    classRoomRepository.save(classRoom);
+    return true; // Successfully added student to the classroom
+  }
 
-    @Override
-    public Boolean assignQuizToClassroom(String classRoomId, String quizId) {
-      ClassRoom classRoom = classRoomRepository.findById(classRoomId
-      ).orElseThrow(() -> new RuntimeException("Classroom not found"));
-      List<String> assignedQuizIds = classRoom.getAssignedQuizIds();
-      if (assignedQuizIds.contains(quizId)) {
-        return false;
-      }
-      assignedQuizIds.add(quizId);
-      classRoom.setAssignedQuizIds(assignedQuizIds);
-      classRoomRepository.save(classRoom);
-      return true;
+  @Override
+  public Boolean assignQuizToClassroom(String classRoomId, String quizId) {
+    ClassRoom classRoom =
+        classRoomRepository
+            .findById(classRoomId)
+            .orElseThrow(() -> new RuntimeException("Classroom not found"));
+    List<String> assignedQuizIds = classRoom.getAssignedQuizIds();
+    if (assignedQuizIds.contains(quizId)) {
+      return false;
     }
-
+    assignedQuizIds.add(quizId);
+    classRoom.setAssignedQuizIds(assignedQuizIds);
+    classRoomRepository.save(classRoom);
+    return true;
+  }
 }

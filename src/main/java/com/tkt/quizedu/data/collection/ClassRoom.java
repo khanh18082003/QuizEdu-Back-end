@@ -27,8 +27,10 @@ public class ClassRoom extends StringIdentityCollection {
   String name;
   String description;
   String teacherId;
+
   @Indexed(unique = true)
   String classCode;
+
   List<String> studentIds;
   List<String> assignedQuizIds;
   LocalDate createdAt;
