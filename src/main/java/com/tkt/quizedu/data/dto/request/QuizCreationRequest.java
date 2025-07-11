@@ -14,5 +14,6 @@ public record QuizCreationRequest(
         List<String> classIds,
         boolean isActive,
         MultipleChoiceQuiz multipleChoiceQuiz
+        //còn các loại quiz khác
 ) {
 }

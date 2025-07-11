@@ -10,4 +10,5 @@ import lombok.Data;
 public class QuizCreationResponse {
     private Quiz quiz;
     private MultipleChoiceQuiz multipleChoiceQuiz;
+    //còn các loại quiz khác
 }

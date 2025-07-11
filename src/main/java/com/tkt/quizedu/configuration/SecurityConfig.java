@@ -20,6 +20,7 @@ public class SecurityConfig {
           "/users",
           "/auth/verification-code",
           "/quizzes",
+          "/quizzes/**",
   };
 
   @Bean

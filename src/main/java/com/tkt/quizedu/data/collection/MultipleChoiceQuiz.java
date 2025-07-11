@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.io.Serial;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Document(collection = "multipleChoiceQuiz")
 @Getter
@@ -26,23 +27,29 @@ public class MultipleChoiceQuiz extends StringIdentityCollection {
     String id;
     String name;
     List<Question> questions;
-    String QuizId;
+    String quizId;
     @Data
     public static class Question {
+        UUID questionId;
         @Indexed(unique = true)
         String questionText;
         String hint;
         int timeLimit;
         boolean allowMultipleAnswers;
         int points;
-        Map<String, Boolean> answers;
+        List<AnswerOption> answers;
         List<AnswerParticipant> answerParticipants;
         @Data
         public static class AnswerParticipant {
             String userId;
             String answer;
             String correctAnswer;
-            boolean isCorrect;
+            boolean correct;
+        }
+        @Data
+        public static class AnswerOption {
+            String answerText;
+            boolean correct;
         }
     }
 
