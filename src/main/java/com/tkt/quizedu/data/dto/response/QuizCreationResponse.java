@@ -9,6 +9,7 @@ import lombok.Data;
 @Builder
 @Data
 public class QuizCreationResponse {
-  private Quiz quiz;
-  private MultipleChoiceQuiz multipleChoiceQuiz;
+    private Quiz quiz;
+    private MultipleChoiceQuiz multipleChoiceQuiz;
+    //còn các loại quiz khác
 }
