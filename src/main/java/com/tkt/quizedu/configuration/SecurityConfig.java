@@ -16,31 +16,36 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-  private static final String[] NO_AUTHENTICATION_ENDPOINTS = {
-    "/users", "/auth/verification-code", "/quizzes", "/classrooms"
-  };
+    private static final String[] NO_AUTHENTICATION_ENDPOINTS = {
+            "/users", "/auth/verification-code"
+            , "/classrooms",
+            "/users",
+            "/auth/verification-code",
+            "/quizzes",
+            "/quizzes/**",
+    };
 
-  @Bean
-  public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-    httpSecurity
-        .csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(
-            request ->
-                request
-                    .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**")
-                    .permitAll()
-                    .requestMatchers(NO_AUTHENTICATION_ENDPOINTS)
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated())
-        .sessionManagement(
-            manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(
+                        request ->
+                                request
+                                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**")
+                                        .permitAll()
+                                        .requestMatchers(NO_AUTHENTICATION_ENDPOINTS)
+                                        .permitAll()
+                                        .anyRequest()
+                                        .authenticated())
+                .sessionManagement(
+                        manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-    return httpSecurity.build();
-  }
+        return httpSecurity.build();
+    }
 
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder(10);
-  }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(10);
+    }
 }
