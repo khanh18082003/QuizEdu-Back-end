@@ -40,6 +40,8 @@ public class MatchingQuiz extends StringIdentityCollection {
         int points;
     }
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MatchItem {
         String content;
         MatchingType matchingType;

@@ -2,6 +2,7 @@ package com.tkt.quizedu.data.dto.request;
 
 import java.util.List;
 
+import com.tkt.quizedu.data.collection.MatchingQuiz;
 import com.tkt.quizedu.data.collection.MultipleChoiceQuiz;
 
 import lombok.Builder;
@@ -14,6 +15,7 @@ public record QuizCreationRequest(
     String subjectId,
     List<String> classIds,
     boolean isActive,
-    MultipleChoiceQuiz multipleChoiceQuiz
+    MultipleChoiceQuiz multipleChoiceQuiz,
+    MatchingQuiz matchingQuiz
     // còn các loại quiz khác
     ) {}
