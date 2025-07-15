@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.tkt.quizedu.data.dto.request.AuthenticationDTORequest;
+import com.tkt.quizedu.data.dto.request.ResendCodeDTORequest;
 import com.tkt.quizedu.data.dto.response.AuthenticationResponse;
 
 public interface IAuthenticationService {
@@ -14,4 +15,6 @@ public interface IAuthenticationService {
       AuthenticationDTORequest req, HttpServletResponse httpServletResponse);
 
   AuthenticationResponse refreshToken(HttpServletRequest httpServletRequest, String role);
+
+  void resendVerificationCode(ResendCodeDTORequest req);
 }

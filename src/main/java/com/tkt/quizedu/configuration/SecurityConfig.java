@@ -1,5 +1,7 @@
 package com.tkt.quizedu.configuration;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,6 +17,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.tkt.quizedu.component.CustomPreFilterRequest;
 import com.tkt.quizedu.service.user.CustomUserDetailService;
@@ -31,10 +36,12 @@ public class SecurityConfig {
   private final CustomPreFilterRequest customPreFilterRequest;
 
   private static final String[] NO_AUTHENTICATION_ENDPOINTS = {
-    "/users",
+    "/users/student",
+    "/users/teacher",
     "/auth",
     "/auth/verification-code",
     "/auth/refresh-token",
+    "/auth/resend-code",
     "/classrooms",
     "/quizzes",
     "/quizzes/**",
@@ -44,6 +51,7 @@ public class SecurityConfig {
   public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
     httpSecurity
         .csrf(AbstractHttpConfigurer::disable)
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .authorizeHttpRequests(
             request ->
                 request
@@ -59,6 +67,19 @@ public class SecurityConfig {
         .addFilterBefore(customPreFilterRequest, UsernamePasswordAuthenticationFilter.class);
 
     return httpSecurity.build();
+  }
+
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+    configuration.setAllowedHeaders(List.of("*"));
+    configuration.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
   }
 
   @Bean

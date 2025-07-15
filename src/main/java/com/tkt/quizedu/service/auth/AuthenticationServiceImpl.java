@@ -22,6 +22,7 @@ import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.constant.TokenType;
 import com.tkt.quizedu.data.dto.request.AuthenticationDTORequest;
+import com.tkt.quizedu.data.dto.request.ResendCodeDTORequest;
 import com.tkt.quizedu.data.dto.response.AuthenticationResponse;
 import com.tkt.quizedu.exception.QuizException;
 import com.tkt.quizedu.service.jwt.IJwtService;
@@ -100,9 +101,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     CookiesUtils.createCookie(
         req.role(), refreshToken, expirationDay * 24 * 60 * 60, "/", httpServletResponse);
 
-    storeAccessTokenInRedis(accessToken);
+    String jit = storeAccessTokenInRedis(accessToken);
 
-    return AuthenticationResponse.builder().accessToken(accessToken).build();
+    return AuthenticationResponse.builder().accessToken(jit).build();
   }
 
   @Override
@@ -120,14 +121,20 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
       throw new QuizException(ErrorCode.MESSAGE_UNAUTHENTICATED);
     }
     String newAccessToken = jwtService.generateAccessToken(email, userDetails.getAuthorities());
-    storeAccessTokenInRedis(newAccessToken);
+    String jit = storeAccessTokenInRedis(newAccessToken);
 
-    return AuthenticationResponse.builder().accessToken(newAccessToken).build();
+    return AuthenticationResponse.builder().accessToken(jit).build();
   }
 
-  private void storeAccessTokenInRedis(String accessToken) {
+  @Override
+  public void resendVerificationCode(ResendCodeDTORequest req) {
+    sendVerificationCodeForInactiveUser(req.id(), req.email(), req.firstName(), req.lastName());
+  }
+
+  private String storeAccessTokenInRedis(String accessToken) {
     String key = jwtService.extractId(TokenType.ACCESS_TOKEN, accessToken);
     redisTemplate.opsForValue().set(key, accessToken, expirationTime, TimeUnit.MINUTES);
+    return key;
   }
 
   private void validateUserRole(CustomUserDetail userDetail, String role) {
@@ -138,20 +145,20 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
   private void handleInactiveUser(User user) {
     if (user != null && !user.isActive()) {
-      sendVerificationCodeForInactiveUser(user);
+      sendVerificationCodeForInactiveUser(
+          user.getId(), user.getEmail(), user.getFirstName(), user.getLastName());
       throw new QuizException(ErrorCode.MESSAGE_UNAUTHENTICATED);
     }
   }
 
-  private void sendVerificationCodeForInactiveUser(User user) {
+  private void sendVerificationCodeForInactiveUser(
+      String id, String email, String firstName, String lastName) {
     String code = GenerateVerificationCode.generateCode();
-    String key = "user:confirmation:" + user.getId();
+    String key = "user:confirmation:" + id;
     redisTemplate.opsForValue().set(key, code, 10, TimeUnit.MINUTES);
 
     String message =
-        String.format(
-            "email=%s,name=%s,code=%s",
-            user.getEmail(), user.getFirstName() + " " + user.getLastName(), code);
+        String.format("email=%s,name=%s,code=%s", email, firstName + " " + lastName, code);
     kafkaTemplate.send("confirm-account-topic", message);
   }
 }

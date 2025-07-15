@@ -3,6 +3,7 @@ package com.tkt.quizedu.data.collection;
 import java.io.Serial;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -13,6 +14,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import com.tkt.quizedu.data.base.StringIdentityCollection;
+import com.tkt.quizedu.data.constant.EducationLevel;
 import com.tkt.quizedu.data.constant.UserRole;
 
 import lombok.*;
@@ -53,11 +55,25 @@ public class User extends StringIdentityCollection {
 
   UserRole role;
 
+  EducationLevel level;
+
+  @Field(name = "school_name")
+  String schoolName;
+
   @Field(name = "is_active")
   boolean isActive;
 
   @Field(name = "class_ids", targetType = FieldType.ARRAY)
   List<String> classIds;
+
+  @Field(name = "subjects", targetType = FieldType.ARRAY)
+  Set<String> subjects;
+
+  @Field(name = "qualifications", targetType = FieldType.ARRAY)
+  Set<String> qualifications;
+
+  @Field(name = "experience")
+  String experience;
 
   @Field(name = "created_at")
   @CreatedDate
