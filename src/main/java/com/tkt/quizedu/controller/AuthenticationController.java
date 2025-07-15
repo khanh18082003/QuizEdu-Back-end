@@ -14,6 +14,7 @@ import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.dto.request.AuthenticationDTORequest;
 import com.tkt.quizedu.data.dto.request.RefreshTokenDTORequest;
+import com.tkt.quizedu.data.dto.request.ResendCodeDTORequest;
 import com.tkt.quizedu.data.dto.request.VerificationCodeDTORequest;
 import com.tkt.quizedu.data.dto.response.AuthenticationResponse;
 import com.tkt.quizedu.data.dto.response.SuccessApiResponse;
@@ -85,56 +86,7 @@ public class AuthenticationController {
 						"status": 200,
 						"message": "Success",
 					}
-<<<<<<< HEAD
 					"""))),
-        @ApiResponse(
-            responseCode = "400",
-            description = "Invalid request data",
-            content =
-                @Content(
-                    mediaType = "application/json",
-                    examples =
-                        @ExampleObject(
-                            name = "Validation Error",
-                            summary = "Invalid input data",
-                            value =
-                                """
-					{
-						"code": "M002",
-						"status": 400,
-						"message": "Validation failed",
-						"errors": [
-							{
-								"field": "email",
-								"message": "Email must be valid"
-							},
-							{
-								"field": "password",
-								"message": "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character"
-							}
-						]
-					}
-					"""))),
-        @ApiResponse(
-            responseCode = "409",
-            description = "User already exists",
-            content =
-                @Content(
-                    mediaType = "application/json",
-                    examples =
-                        @ExampleObject(
-                            name = "Conflict Error",
-                            summary = "Email already registered",
-                            value =
-                                """
-					{
-						"code": "M003",
-						"status": 409,
-						"message": "Email already exists"
-					}
-=======
->>>>>>> khanh/authentication_user
-					""")))
       })
   SuccessApiResponse<Void> validateVerificationCode(
       @Valid @RequestBody VerificationCodeDTORequest req) {
@@ -171,6 +123,16 @@ public class AuthenticationController {
         .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .data(response)
+        .build();
+  }
+
+  @PostMapping("/resend-code")
+  SuccessApiResponse<Void> resendVerificationCode(@Valid @RequestBody ResendCodeDTORequest req) {
+    authenticationService.resendVerificationCode(req);
+    return SuccessApiResponse.<Void>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .build();
   }
 }

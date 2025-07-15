@@ -118,12 +118,11 @@ public class JwtServiceImpl implements IJwtService {
 
     return username.equals(userDetails.getUsername())
         && !isTokenExpired(type, token)
-        && !isBlacklisted(extractId(type, token));
+        && isWhitelisted(extractId(type, token));
   }
 
-  private boolean isBlacklisted(String jit) {
-    String key = "invalid_token:" + jit;
-    return redisTemplate.hasKey(key);
+  private boolean isWhitelisted(String jit) {
+    return redisTemplate.hasKey(jit);
   }
 
   private boolean isTokenExpired(TokenType type, String token) {

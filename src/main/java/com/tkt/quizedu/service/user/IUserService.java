@@ -10,5 +10,5 @@ public interface IUserService {
 
   boolean existsUserByEmail(String email);
 
-  UserBaseResponse getUserByEmail(String email);
+  UserBaseResponse getMyProfile();
 }

@@ -10,6 +10,7 @@ import jakarta.validation.ConstraintViolation;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -96,6 +97,22 @@ public class GlobalExceptionHandler {
                 })
             .toList();
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorApiResponses);
+  }
+
+  @ExceptionHandler(AccessDeniedException.class)
+  ResponseEntity<ErrorApiResponse> handleAccessDeniedException(
+      AccessDeniedException accessDeniedException, WebRequest request) {
+    log.error("Access denied: {}", accessDeniedException.getMessage(), accessDeniedException);
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        .body(
+            ErrorApiResponse.builder()
+                .timeStamp(LocalDateTime.now())
+                .code(ErrorCode.MESSAGE_UNAUTHENTICATED.getCode())
+                .status(HttpStatus.FORBIDDEN.value())
+                .error(HttpStatus.FORBIDDEN.getReasonPhrase())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .message(accessDeniedException.getMessage())
+                .build());
   }
 
   private String mapMessage(String message, Map<String, Object> attributes, String fieldError) {
