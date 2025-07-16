@@ -24,7 +24,6 @@ import lombok.experimental.FieldDefaults;
 public class MultipleChoiceQuiz extends StringIdentityCollection {
   @Serial private static final long serialVersionUID = -5465733518693373245L;
   @Id String id;
-  String name;
   List<Question> questions;
   String quizId;
 

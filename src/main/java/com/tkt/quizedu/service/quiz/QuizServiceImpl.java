@@ -4,9 +4,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tkt.quizedu.data.collection.CustomUserDetail;
 import com.tkt.quizedu.data.collection.MatchingQuiz;
 import com.tkt.quizedu.data.dto.request.*;
+import com.tkt.quizedu.data.mapper.MatchingQuizMapper;
+import com.tkt.quizedu.data.mapper.MultipleChoiceQuizMapper;
+import com.tkt.quizedu.data.mapper.QuizMapper;
 import com.tkt.quizedu.data.repository.MatchingQuizRepository;
 import com.tkt.quizedu.utils.SecurityUtils;
 import org.springframework.stereotype.Service;
@@ -32,64 +36,45 @@ public class QuizServiceImpl implements IQuizService {
     QuizRepository quizRepository;
     MultipleChoiceQuizRepository multipleChoiceQuizRepository;
     MatchingQuizRepository matchingQuizRepository;
+    QuizMapper quizMapper;
+    MultipleChoiceQuizMapper multipleChoiceQuizMapper;
+    MatchingQuizMapper matchingQuizMapper;
+    ObjectMapper objectMapper;
 
     @Override
     @Transactional
     public QuizResponse save(QuizCreationRequest request) {
         //Sua lai theo dang nhap cua giao vien
-        Quiz quiz =
-                Quiz.builder()
-                        .name(request.name())
-                        .description(request.description())
-                        .teacherId(request.teacherId())
-                        .subjectId(request.subjectId())
-                        .classIds(request.classIds())
-                        .isActive(request.isActive())
-                        .build();
+        CustomUserDetail userDetail = SecurityUtils.getUserDetail();
+        Quiz quiz = quizMapper.toQuiz(request);
+        quiz.setTeacherId(userDetail.getUser().getId());
+
         quiz = quizRepository.save(quiz);
         MultipleChoiceQuiz multipleChoiceQuiz = null;
-
+        //  Gán UUID cho từng câu hỏi nếu có
         if (request.multipleChoiceQuiz() != null) {
-            request.multipleChoiceQuiz().setQuizId(quiz.getId());
-            //  Gán UUID cho từng câu hỏi nếu có
-            if (request.multipleChoiceQuiz().getQuestions() != null) {
-                request
-                        .multipleChoiceQuiz()
-                        .getQuestions()
-                        .forEach(
-                                q -> {
-                                    if (q.getQuestionId() == null) {
-                                        q.setQuestionId(UUID.randomUUID());
-                                    }
-                                });
-            }
-
-            multipleChoiceQuiz = multipleChoiceQuizRepository.save(request.multipleChoiceQuiz());
+            multipleChoiceQuiz = multipleChoiceQuizMapper.toMultipleChoiceQuiz(request.multipleChoiceQuiz());
+            multipleChoiceQuiz.setQuizId(quiz.getId());
+            multipleChoiceQuizRepository.save(multipleChoiceQuiz);
         }
+        // Nếu có MatchingQuiz, map và lưu
         MatchingQuiz matchingQuiz = null;
         if (request.matchingQuiz() != null) {
-            request.matchingQuiz().setQuizId(quiz.getId());
-            if (request.matchingQuiz().getQuestions() != null) {
-                request
-                        .matchingQuiz()
-                        .getQuestions()
-                        .forEach(pair -> {
-                            if (pair.getId() == null) {
-                                pair.setId(UUID.randomUUID());
-                            }
-                        });
-            }
-            matchingQuiz = matchingQuizRepository.save(request.matchingQuiz());
-            // Nếu có các loại quiz khác, thêm logic lưu tương ứng
+            matchingQuiz = matchingQuizMapper.toMatchingQuiz(request.matchingQuiz());
+            matchingQuiz.setQuizId(quiz.getId());
+            // Gán lại danh sách MatchPair nếu bạn map từng MatchPair riêng
+            List<MatchingQuiz.MatchPair> pairs = matchingQuizMapper.toMatchPairList(request.matchingQuiz().questions());
+            matchingQuiz.setQuestions(pairs);
+            matchingQuizRepository.save(matchingQuiz);
         }
-        return QuizResponse.builder().quiz(quiz).multipleChoiceQuiz(multipleChoiceQuiz)
-                .matchingQuiz(matchingQuiz)
-                .build();
+        return QuizResponse.builder().quiz(quiz).multipleChoiceQuiz(multipleChoiceQuiz != null ? multipleChoiceQuizMapper.toMultipleChoiceQuizResponse(multipleChoiceQuiz) : null)
+                .matchingQuiz(matchingQuiz != null ? matchingQuizMapper.toMatchingQuizResponse(matchingQuiz) : null).build();
     }
 
     @Override
     public List<QuizResponse> getAll() {
-        List<Quiz> quizzes = quizRepository.findAll();
+        CustomUserDetail userDetail = SecurityUtils.getUserDetail();
+        List<Quiz> quizzes = quizRepository.findAllByTeacherId(userDetail.getUser().getId());
         return quizzes.stream()
                 .map(
                         quiz -> {
@@ -98,11 +83,8 @@ public class QuizServiceImpl implements IQuizService {
                             MatchingQuiz matchingQuiz =
                                     matchingQuizRepository.findByQuizId(quiz.getId());
                             // Nếu có các loại quiz khác, thêm logic lấy tương ứng
-                            return QuizResponse.builder()
-                                    .quiz(quiz)
-                                    .multipleChoiceQuiz(multipleChoiceQuiz)
-                                    .matchingQuiz(matchingQuiz)
-                                    .build();
+                            return QuizResponse.builder().quiz(quiz).multipleChoiceQuiz(multipleChoiceQuiz != null ? multipleChoiceQuizMapper.toMultipleChoiceQuizResponse(multipleChoiceQuiz) : null)
+                                    .matchingQuiz(matchingQuiz != null ? matchingQuizMapper.toMatchingQuizResponse(matchingQuiz) : null).build();
                         })
                 .toList();
     }
@@ -114,7 +96,8 @@ public class QuizServiceImpl implements IQuizService {
         MultipleChoiceQuiz multipleChoiceQuiz = multipleChoiceQuizRepository.findByQuizId(quiz.getId());
         MatchingQuiz matchingQuiz = matchingQuizRepository.findByQuizId(quiz.getId());
         // Nếu có các loại quiz khác, thêm logic lấy tương ứng
-        return QuizResponse.builder().quiz(quiz).multipleChoiceQuiz(multipleChoiceQuiz).matchingQuiz(matchingQuiz).build();
+        return QuizResponse.builder().quiz(quiz).multipleChoiceQuiz(multipleChoiceQuiz != null ? multipleChoiceQuizMapper.toMultipleChoiceQuizResponse(multipleChoiceQuiz) : null)
+                .matchingQuiz(matchingQuiz != null ? matchingQuizMapper.toMatchingQuizResponse(matchingQuiz) : null).build();
     }
 
     @Override
@@ -155,7 +138,8 @@ public class QuizServiceImpl implements IQuizService {
                         .toList();
         multipleChoiceQuiz.getQuestions().addAll(newQuestions);
         multipleChoiceQuizRepository.save(multipleChoiceQuiz);
-        return QuizResponse.builder().quiz(quiz).multipleChoiceQuiz(multipleChoiceQuiz).build();
+        return QuizResponse.builder().quiz(quiz).multipleChoiceQuiz(multipleChoiceQuizMapper.toMultipleChoiceQuizResponse(multipleChoiceQuiz))
+                .build();
     }
 
     @Override
@@ -217,7 +201,8 @@ public class QuizServiceImpl implements IQuizService {
 
         multipleChoiceQuizRepository.save(multipleChoiceQuiz);
 
-        return QuizResponse.builder().quiz(quiz).multipleChoiceQuiz(multipleChoiceQuiz).build();
+        return QuizResponse.builder().quiz(quiz).multipleChoiceQuiz(multipleChoiceQuizMapper.toMultipleChoiceQuizResponse(multipleChoiceQuiz))
+                .build();
     }
 
     @Override
@@ -238,7 +223,8 @@ public class QuizServiceImpl implements IQuizService {
                 ).toList();
         matchingQuiz.getQuestions().addAll(newPairs);
         matchingQuizRepository.save(matchingQuiz);
-        return QuizResponse.builder().quiz(quiz).matchingQuiz(matchingQuiz).build();
+        return QuizResponse.builder().quiz(quiz).matchingQuiz(matchingQuizMapper.toMatchingQuizResponse(matchingQuiz))
+                .build();
     }
 
     @Override
@@ -289,7 +275,55 @@ public class QuizServiceImpl implements IQuizService {
                 });
 
         matchingQuizRepository.save(matchingQuiz);
+        return QuizResponse.builder().quiz(quiz).matchingQuiz(matchingQuizMapper.toMatchingQuizResponse(matchingQuiz))
+                .build();
+    }
 
-        return QuizResponse.builder().quiz(quiz).matchingQuiz(matchingQuiz).build();
+    @Override
+    public QuizResponse addQuizQuestion(String quizId, AddQuizRequest request) {
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new RuntimeException("Quiz not found"));
+
+        MultipleChoiceQuiz multipleChoiceQuiz = null;
+        MatchingQuiz matchingQuiz = null;
+
+        switch (request.type()) {
+            case MULTIPLE_CHOICE -> {
+                if (multipleChoiceQuizRepository.existsByQuizId(quizId)) {
+                    throw new RuntimeException("Multiple choice quiz already exists");
+                }
+
+                MultipleChoiceQuizRequest multipleChoiceQuizRequest =
+                        objectMapper.convertValue(request.data(), MultipleChoiceQuizRequest.class);
+
+                multipleChoiceQuiz = multipleChoiceQuizMapper.toMultipleChoiceQuiz(multipleChoiceQuizRequest);
+                multipleChoiceQuiz.setQuizId(quizId);
+                multipleChoiceQuiz = multipleChoiceQuizRepository.save(multipleChoiceQuiz);
+            }
+
+            case MATCHING -> {
+                if (matchingQuizRepository.existsByQuizId(quizId)) {
+                    throw new RuntimeException("Matching quiz already exists");
+                }
+
+                MatchingQuizRequest matchingQuizRequest =
+                        objectMapper.convertValue(request.data(), MatchingQuizRequest.class);
+
+                matchingQuiz = matchingQuizMapper.toMatchingQuiz(matchingQuizRequest);
+                matchingQuiz.setQuizId(quizId);
+                matchingQuiz.setQuestions(
+                        matchingQuizMapper.toMatchPairList(matchingQuizRequest.questions())
+                );
+                matchingQuiz = matchingQuizRepository.save(matchingQuiz);
+            }
+
+            default -> throw new IllegalArgumentException("Unsupported quiz type: " + request.type());
+        }
+
+        return QuizResponse.builder()
+                .quiz(quiz)
+                .multipleChoiceQuiz(multipleChoiceQuizMapper.toMultipleChoiceQuizResponse(multipleChoiceQuizRepository.findByQuizId(quizId)))
+                .matchingQuiz(matchingQuizMapper.toMatchingQuizResponse(matchingQuizRepository.findByQuizId(quizId)))
+                .build();
     }
 }

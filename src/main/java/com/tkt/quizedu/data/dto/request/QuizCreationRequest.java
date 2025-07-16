@@ -11,11 +11,10 @@ import lombok.Builder;
 public record QuizCreationRequest(
     String name,
     String description,
-    String teacherId,
     String subjectId,
     List<String> classIds,
     boolean isActive,
-    MultipleChoiceQuiz multipleChoiceQuiz,
-    MatchingQuiz matchingQuiz
+    MultipleChoiceQuizRequest multipleChoiceQuiz,
+    MatchingQuizRequest matchingQuiz
     // còn các loại quiz khác
     ) {}

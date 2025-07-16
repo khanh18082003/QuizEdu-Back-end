@@ -156,4 +156,21 @@ public class QuizController {
                 .data(response)
                 .build();
     }
+
+    // add quiz type if needed
+    @PostMapping("/{quizId}/add")
+    @ResponseStatus(HttpStatus.OK)
+    SuccessApiResponse<QuizResponse> addQuizQuestion(
+            @PathVariable String quizId,
+            @RequestBody @Valid AddQuizRequest request
+    )
+    {
+        QuizResponse response= quizService.addQuizQuestion(quizId, request);
+        return SuccessApiResponse.<QuizResponse>builder()
+                .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+                .status(HttpStatus.OK.value())
+                .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+                .data(response)
+                .build();
+    }
 }

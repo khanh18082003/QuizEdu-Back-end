@@ -11,7 +11,7 @@ import lombok.Data;
 @Data
 public class QuizResponse {
   private Quiz quiz;
-  private MultipleChoiceQuiz multipleChoiceQuiz;
-  private MatchingQuiz matchingQuiz;
+  private MultipleChoiceQuizResponse multipleChoiceQuiz;
+  private MatchingQuizResponse matchingQuiz;
   // còn các loại quiz khác
 }
