@@ -8,4 +8,5 @@ import org.springframework.stereotype.Repository;
 public interface MatchingQuizRepository extends BaseRepository<MatchingQuiz, String> {
     // Define any additional methods specific to MatchingQuizRepository if needed
     MatchingQuiz findByQuizId(String quizId);
+    Boolean existsByQuizId(String quizId);
 }

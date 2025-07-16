@@ -43,8 +43,6 @@ public class SecurityConfig {
     "/auth/refresh-token",
     "/auth/resend-code",
     "/classrooms",
-    "/quizzes",
-    "/quizzes/**",
   };
 
   @Bean
