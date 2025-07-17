@@ -22,6 +22,7 @@ import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.constant.TokenType;
 import com.tkt.quizedu.data.dto.request.AuthenticationDTORequest;
+import com.tkt.quizedu.data.dto.request.ForgotPasswordDTORequest;
 import com.tkt.quizedu.data.dto.request.ResendCodeDTORequest;
 import com.tkt.quizedu.data.dto.response.AuthenticationResponse;
 import com.tkt.quizedu.exception.QuizException;
@@ -58,18 +59,21 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
   @Value("${jwt.expirationTime}")
   int expirationTime;
 
+  private static final String REFRESH_TOKEN_NAME = "SECURE_ID";
+
   @Override
   @Transactional
-  public void validateVerificationCode(String userId, String code) {
-    String key = "user:confirmation:" + userId;
+  public void validateVerificationCode(String email, String code) {
+    String key = "user:confirmation:" + email;
     String storedCode = (String) redisTemplate.opsForValue().get(key);
     if (storedCode != null && storedCode.equals(code)) {
       // If the code matches, remove it from Redis to prevent reuse
       redisTemplate.delete(key);
-      userService.activeUser(userId);
+      // Activate the user
+      userService.activeUser(email);
     } else {
       // If the code does not match, throw an exception or handle accordingly
-      log.error("Invalid verification code for user: {}", userId);
+      log.error("Invalid verification code for user: {}", email);
       throw new QuizException(ErrorCode.MESSAGE_UNAUTHENTICATED);
     }
   }
@@ -99,42 +103,72 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         jwtService.generateRefreshToken(user.getEmail(), userDetail.getAuthorities());
 
     CookiesUtils.createCookie(
-        req.role(), refreshToken, expirationDay * 24 * 60 * 60, "/", httpServletResponse);
+        REFRESH_TOKEN_NAME, refreshToken, expirationDay * 24 * 60 * 60, "/", httpServletResponse);
 
-    String jit = storeAccessTokenInRedis(accessToken);
+    storeAccessTokenInRedis(accessToken, user.getEmail());
 
-    return AuthenticationResponse.builder().accessToken(jit).build();
+    return AuthenticationResponse.builder()
+        .accessToken(accessToken)
+        .role(user.getRole().name())
+        .build();
   }
 
   @Override
-  public AuthenticationResponse refreshToken(HttpServletRequest httpServletRequest, String name) {
-    String refreshToken = CookiesUtils.getRefreshTokenFromCookies(httpServletRequest, name);
+  public AuthenticationResponse refreshToken(HttpServletRequest httpServletRequest) {
+    String refreshToken =
+        CookiesUtils.getRefreshTokenFromCookies(httpServletRequest, REFRESH_TOKEN_NAME);
     String email = jwtService.extractUsername(TokenType.REFRESH_TOKEN, refreshToken);
 
     // Load the user by username
-    CustomUserDetail userDetails =
+    CustomUserDetail userDetail =
         (CustomUserDetail) customUserDetailService.loadUserByUsername(email);
-    if (userDetails == null) {
+    if (!jwtService.validateToken(TokenType.REFRESH_TOKEN, refreshToken, userDetail)) {
       throw new QuizException(ErrorCode.MESSAGE_UNAUTHENTICATED);
     }
-    if (!jwtService.validateToken(TokenType.REFRESH_TOKEN, refreshToken, userDetails)) {
-      throw new QuizException(ErrorCode.MESSAGE_UNAUTHENTICATED);
-    }
-    String newAccessToken = jwtService.generateAccessToken(email, userDetails.getAuthorities());
-    String jit = storeAccessTokenInRedis(newAccessToken);
 
-    return AuthenticationResponse.builder().accessToken(jit).build();
+    String newAccessToken = jwtService.generateAccessToken(email, userDetail.getAuthorities());
+    storeAccessTokenInRedis(newAccessToken, email);
+
+    return AuthenticationResponse.builder()
+        .accessToken(newAccessToken)
+        .role(userDetail.getUser().getRole().name())
+        .build();
+  }
+
+  @Override
+  public void logout(HttpServletRequest request, HttpServletResponse response) {
+    String header = request.getHeader("Authorization");
+    String email = "";
+    if (header != null && header.startsWith("Bearer ")) {
+      String token = header.substring(7); // Extract the token
+      email = jwtService.extractUsername(TokenType.ACCESS_TOKEN, token);
+      removeAccessTokenFromRedis(email);
+    } else {
+      log.warn("No Bearer token found in request header for logout.");
+    }
+
+    CookiesUtils.clearCookie(email, "/", response);
+
+    SecurityContextHolder.clearContext();
+    log.info("User logged out successfully.");
   }
 
   @Override
   public void resendVerificationCode(ResendCodeDTORequest req) {
-    sendVerificationCodeForInactiveUser(req.id(), req.email(), req.firstName(), req.lastName());
+    sendVerificationCode(req.email(), req.firstName(), req.lastName());
   }
 
-  private String storeAccessTokenInRedis(String accessToken) {
-    String key = jwtService.extractId(TokenType.ACCESS_TOKEN, accessToken);
-    redisTemplate.opsForValue().set(key, accessToken, expirationTime, TimeUnit.MINUTES);
-    return key;
+  @Override
+  public void verifyEmail(ForgotPasswordDTORequest req) {
+    sendVerificationCode(req.email(), "", "");
+  }
+
+  private void storeAccessTokenInRedis(String accessToken, String email) {
+    redisTemplate.opsForValue().set(email, accessToken, expirationTime, TimeUnit.MINUTES);
+  }
+
+  private void removeAccessTokenFromRedis(String email) {
+    redisTemplate.delete(email);
   }
 
   private void validateUserRole(CustomUserDetail userDetail, String role) {
@@ -145,16 +179,14 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
   private void handleInactiveUser(User user) {
     if (user != null && !user.isActive()) {
-      sendVerificationCodeForInactiveUser(
-          user.getId(), user.getEmail(), user.getFirstName(), user.getLastName());
+      sendVerificationCode(user.getEmail(), user.getFirstName(), user.getLastName());
       throw new QuizException(ErrorCode.MESSAGE_UNAUTHENTICATED);
     }
   }
 
-  private void sendVerificationCodeForInactiveUser(
-      String id, String email, String firstName, String lastName) {
+  private void sendVerificationCode(String email, String firstName, String lastName) {
     String code = GenerateVerificationCode.generateCode();
-    String key = "user:confirmation:" + id;
+    String key = "user:confirmation:" + email;
     redisTemplate.opsForValue().set(key, code, 10, TimeUnit.MINUTES);
 
     String message =

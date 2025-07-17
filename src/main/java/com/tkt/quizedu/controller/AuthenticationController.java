@@ -12,10 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tkt.quizedu.component.Translator;
 import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
-import com.tkt.quizedu.data.dto.request.AuthenticationDTORequest;
-import com.tkt.quizedu.data.dto.request.RefreshTokenDTORequest;
-import com.tkt.quizedu.data.dto.request.ResendCodeDTORequest;
-import com.tkt.quizedu.data.dto.request.VerificationCodeDTORequest;
+import com.tkt.quizedu.data.dto.request.*;
 import com.tkt.quizedu.data.dto.response.AuthenticationResponse;
 import com.tkt.quizedu.data.dto.response.SuccessApiResponse;
 import com.tkt.quizedu.service.auth.IAuthenticationService;
@@ -90,7 +87,7 @@ public class AuthenticationController {
       })
   SuccessApiResponse<Void> validateVerificationCode(
       @Valid @RequestBody VerificationCodeDTORequest req) {
-    authenticationService.validateVerificationCode(req.userId(), req.code());
+    authenticationService.validateVerificationCode(req.email(), req.code());
 
     return SuccessApiResponse.<Void>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
@@ -113,11 +110,10 @@ public class AuthenticationController {
   }
 
   @PostMapping("/refresh-token")
-  SuccessApiResponse<AuthenticationResponse> refreshToken(
-      HttpServletRequest httpServletRequest, @RequestBody RefreshTokenDTORequest request) {
-    AuthenticationResponse response =
-        authenticationService.refreshToken(httpServletRequest, request.role());
-
+  SuccessApiResponse<AuthenticationResponse> refreshToken(HttpServletRequest httpServletRequest) {
+    log.info("Refreshing token for request: {}", httpServletRequest.getRequestURI());
+    AuthenticationResponse response = authenticationService.refreshToken(httpServletRequest);
+    log.info("Token refreshed successfully: {}", response);
     return SuccessApiResponse.<AuthenticationResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
@@ -126,9 +122,29 @@ public class AuthenticationController {
         .build();
   }
 
+  @PostMapping("/logout")
+  SuccessApiResponse<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+    authenticationService.logout(request, response);
+    return SuccessApiResponse.<Void>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
+  }
+
   @PostMapping("/resend-code")
   SuccessApiResponse<Void> resendVerificationCode(@Valid @RequestBody ResendCodeDTORequest req) {
     authenticationService.resendVerificationCode(req);
+    return SuccessApiResponse.<Void>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
+  }
+
+  @PostMapping("/forgot-password")
+  SuccessApiResponse<Void> verifyEmail(@Valid @RequestBody ForgotPasswordDTORequest req) {
+    authenticationService.verifyEmail(req);
     return SuccessApiResponse.<Void>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
