@@ -1,5 +1,7 @@
 package com.tkt.quizedu.service.user;
 
+import java.util.Optional;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,6 +101,11 @@ public class UserServiceImpl implements IUserService {
       throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
     }
     return userMapper.toUserBaseResponse(userDetail.getUser());
+  }
+
+  @Override
+  public Optional<User> getUserByEmail(String email) {
+    return userRepository.findByEmail(email);
   }
 
   @Override

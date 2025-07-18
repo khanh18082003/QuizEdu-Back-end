@@ -22,4 +22,6 @@ public interface IAuthenticationService {
   void resendVerificationCode(ResendCodeDTORequest req);
 
   void verifyEmail(ForgotPasswordDTORequest req);
+
+  AuthenticationResponse outboundAuthenticate(String code, String role, HttpServletResponse res);
 }

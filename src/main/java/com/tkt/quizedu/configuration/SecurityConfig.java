@@ -44,6 +44,7 @@ public class SecurityConfig {
     "/auth/refresh-token",
     "/auth/resend-code",
     "/auth/forgot-password",
+    "/auth/outbound/authentication",
     "/classrooms",
     "/quizzes",
     "/quizzes/**",
