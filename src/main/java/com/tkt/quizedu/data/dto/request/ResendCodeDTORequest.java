@@ -8,8 +8,5 @@ import lombok.Builder;
 
 @Builder
 public record ResendCodeDTORequest(
-    @NotBlank(message = "MESSAGE_NOT_BLANK") String id,
-    @NotBlank(message = "MESSAGE_NOT_BLANK") String email,
-    @NotBlank(message = "MESSAGE_NOT_BLANK") String firstName,
-    @NotBlank(message = "MESSAGE_NOT_BLANK") String lastName)
+    @NotBlank(message = "MESSAGE_NOT_BLANK") String email, String firstName, String lastName)
     implements Serializable {}

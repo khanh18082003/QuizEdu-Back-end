@@ -46,19 +46,12 @@ public class CustomPreFilterRequest extends OncePerRequestFilter {
 
     try {
       String authHeader = request.getHeader("Authorization");
-      String jit;
       String username = null;
       String token = null;
 
       // Check if the header starts with "Bearer"
       if (authHeader != null && authHeader.startsWith("Bearer ")) {
-        jit = authHeader.substring(7); // extract token
-        // Get access token from Redis
-        Object redisToken = redisTemplate.opsForValue().get(jit);
-        if (redisToken == null) {
-          throw new AccessDeniedException("Token not found or expired");
-        }
-        token = redisToken.toString();
+        token = authHeader.substring(7); // extract token
         username = extractUsernameFromToken(token);
       }
 

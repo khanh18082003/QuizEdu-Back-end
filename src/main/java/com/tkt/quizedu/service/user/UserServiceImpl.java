@@ -1,5 +1,7 @@
 package com.tkt.quizedu.service.user;
 
+import java.util.Optional;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,6 +10,7 @@ import com.tkt.quizedu.data.collection.CustomUserDetail;
 import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.constant.UserRole;
+import com.tkt.quizedu.data.dto.request.ChangePasswordDTORequest;
 import com.tkt.quizedu.data.dto.request.StudentCreationDTORequest;
 import com.tkt.quizedu.data.dto.request.TeacherCreationDTORequest;
 import com.tkt.quizedu.data.dto.request.UserCreationDTORequest;
@@ -75,10 +78,10 @@ public class UserServiceImpl implements IUserService {
   }
 
   @Override
-  public void activeUser(String userId) {
+  public void activeUser(String email) {
     User user =
         userRepository
-            .findById(userId)
+            .findByEmail(email)
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
 
     user.setActive(true);
@@ -98,5 +101,26 @@ public class UserServiceImpl implements IUserService {
       throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
     }
     return userMapper.toUserBaseResponse(userDetail.getUser());
+  }
+
+  @Override
+  public Optional<User> getUserByEmail(String email) {
+    return userRepository.findByEmail(email);
+  }
+
+  @Override
+  @Transactional
+  public void changePassword(ChangePasswordDTORequest request) {
+    User user =
+        userRepository
+            .findByEmail(request.email())
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    if (!request.newPassword().equals(request.confirmPassword())) {
+      throw new QuizException(ErrorCode.MESSAGE_PASSWORD_NOT_MATCH);
+    }
+
+    user.setPassword(passwordEncoder.encode(request.newPassword()));
+
+    userRepository.save(user);
   }
 }
