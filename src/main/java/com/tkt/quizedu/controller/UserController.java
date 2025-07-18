@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import com.tkt.quizedu.component.Translator;
 import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
+import com.tkt.quizedu.data.dto.request.ChangePasswordDTORequest;
 import com.tkt.quizedu.data.dto.request.StudentCreationDTORequest;
 import com.tkt.quizedu.data.dto.request.TeacherCreationDTORequest;
 import com.tkt.quizedu.data.dto.request.UserCreationDTORequest;
@@ -68,7 +69,7 @@ public class UserController {
 
   private void sendVerificationEmail(UserBaseResponse userResponse, UserCreationDTORequest req) {
     String code = GenerateVerificationCode.generateCode();
-    String key = "user:confirmation:" + userResponse.id();
+    String key = "user:confirmation:" + userResponse.email();
     redisTemplate.opsForValue().set(key, code, 10, TimeUnit.MINUTES);
 
     String message =
@@ -87,6 +88,16 @@ public class UserController {
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .data(userService.getMyProfile())
+        .build();
+  }
+
+  @PatchMapping("/change-password")
+  SuccessApiResponse<Void> changePassword(@Valid @RequestBody ChangePasswordDTORequest req) {
+    userService.changePassword(req);
+    return SuccessApiResponse.<Void>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .build();
   }
 }

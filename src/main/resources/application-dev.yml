@@ -15,8 +15,8 @@ spring:
     from: QuizEdu
     host: smtp.gmail.com
     port: 587
-    username: ${EMAIL_USERNAME:nguyentrungk285@gmail.com}
-    password: ${MAIL_PASSWORD:ogqcuyyrjdddwxkm}
+    username: ${EMAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -49,8 +49,19 @@ jwt:
   issuer: quiz-edu
   expirationTime: 15
   expirationDay: 30
-  accessToken: 7SQerx9SoaVXIgymVZCEA3I6kloqfaZt+WJYWPUJ0Qk=
-  refreshToken: XES8dv8sa5hTheY+E51IUFcs7xkgm+cLGUNYTEaods8=
+  accessToken: ${ACCESS_TOKEN_SECRET}
+  refreshToken: ${REFRESH_TOKEN_SECRET}
+
+outbound:
+  google:
+    identity:
+      url: https://oauth2.googleapis.com
+      client-id: ${GOOGLE_CLIENT_ID}
+      client-secret: ${GOOGLE_CLIENT_SECRET}
+      redirect-uri: http://localhost:5173/authentication/oauth2
+      grant-type: authorization_code
+    user:
+      url: https://www.googleapis.com
 
 admin:
   email: locnam0312@gmail.com
