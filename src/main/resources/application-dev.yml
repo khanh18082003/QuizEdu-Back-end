@@ -63,6 +63,12 @@ outbound:
     user:
       url: https://www.googleapis.com
 
+aws:
+    s3:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+        bucket-name: quiz-edu-service
+
 admin:
   email: locnam0312@gmail.com
   password: admin
