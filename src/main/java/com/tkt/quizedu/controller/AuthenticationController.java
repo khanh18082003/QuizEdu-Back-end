@@ -4,10 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.tkt.quizedu.component.Translator;
 import com.tkt.quizedu.data.constant.EndpointConstant;
@@ -106,6 +103,20 @@ public class AuthenticationController {
         .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .data(response)
+        .build();
+  }
+
+  @PostMapping("/outbound/authentication")
+  SuccessApiResponse<AuthenticationResponse> outboundAuthenticate(
+      @RequestParam("code") String code,
+      @RequestParam("role") String role,
+      HttpServletResponse res) {
+
+    return SuccessApiResponse.<AuthenticationResponse>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(authenticationService.outboundAuthenticate(code, role, res))
         .build();
   }
 

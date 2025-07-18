@@ -21,10 +21,15 @@ import com.tkt.quizedu.data.collection.CustomUserDetail;
 import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.constant.TokenType;
+import com.tkt.quizedu.data.constant.UserRole;
 import com.tkt.quizedu.data.dto.request.AuthenticationDTORequest;
+import com.tkt.quizedu.data.dto.request.ExchangeTokenRequest;
 import com.tkt.quizedu.data.dto.request.ForgotPasswordDTORequest;
 import com.tkt.quizedu.data.dto.request.ResendCodeDTORequest;
 import com.tkt.quizedu.data.dto.response.AuthenticationResponse;
+import com.tkt.quizedu.data.repository.UserRepository;
+import com.tkt.quizedu.data.repository.httpClient.OutboundIdentityClient;
+import com.tkt.quizedu.data.repository.httpClient.OutboundUserClient;
 import com.tkt.quizedu.exception.QuizException;
 import com.tkt.quizedu.service.jwt.IJwtService;
 import com.tkt.quizedu.service.user.CustomUserDetailService;
@@ -46,10 +51,13 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthenticationServiceImpl implements IAuthenticationService {
   RedisTemplate<String, Object> redisTemplate;
   IUserService userService;
+  UserRepository userRepository;
   AuthenticationManager authenticationManager;
   KafkaTemplate<String, String> kafkaTemplate;
   IJwtService jwtService;
   CustomUserDetailService customUserDetailService;
+  OutboundIdentityClient outboundIdentityClient;
+  OutboundUserClient outboundUserClient;
 
   @NonFinal
   @Value("${jwt.expirationDay}")
@@ -58,6 +66,22 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
   @NonFinal
   @Value("${jwt.expirationTime}")
   int expirationTime;
+
+  @NonFinal
+  @Value("${outbound.google.identity.client-id}")
+  String clientId;
+
+  @NonFinal
+  @Value("${outbound.google.identity.client-secret}")
+  String clientSecret;
+
+  @NonFinal
+  @Value("${outbound.google.identity.redirect-uri}")
+  String redirectUri;
+
+  @NonFinal
+  @Value("${outbound.google.identity.grant-type}")
+  String grantType;
 
   private static final String REFRESH_TOKEN_NAME = "SECURE_ID";
 
@@ -161,6 +185,62 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
   @Override
   public void verifyEmail(ForgotPasswordDTORequest req) {
     sendVerificationCode(req.email(), "", "");
+  }
+
+  @Override
+  public AuthenticationResponse outboundAuthenticate(
+      String code, String role, HttpServletResponse res) {
+    var exchangeTokenResponse =
+        outboundIdentityClient.exchangeToken(
+            ExchangeTokenRequest.builder()
+                .code(code)
+                .clientId(clientId)
+                .clientSecret(clientSecret)
+                .grantType(grantType)
+                .redirectUri(redirectUri)
+                .build());
+
+    var userInfo = outboundUserClient.getUserInfo("json", exchangeTokenResponse.getAccessToken());
+
+    User user =
+        userService
+            .getUserByEmail(userInfo.getEmail())
+            .orElseGet(
+                () -> {
+                  User newUser =
+                      User.builder()
+                          .email(userInfo.getEmail())
+                          .firstName(userInfo.getGivenName())
+                          .lastName(userInfo.getFamilyName())
+                          .avatar(userInfo.getPicture())
+                          .role(UserRole.valueOf(role))
+                          .isActive(true)
+                          .build();
+                  return userRepository.save(newUser);
+                });
+    if (user.getAvatar() == null || user.getAvatar().isEmpty()) {
+      user.setAvatar(userInfo.getPicture());
+      userRepository.save(user);
+    }
+
+    if (!user.getRole().name().equals(role)) {
+      throw new QuizException(ErrorCode.MESSAGE_UNAUTHENTICATED);
+    }
+
+    if (!user.isActive()) {
+      user.setActive(true);
+    }
+
+    var authorities = SecurityUtils.getAuthorities(role);
+    String accessToken = jwtService.generateAccessToken(user.getEmail(), authorities);
+    String refreshToken = jwtService.generateRefreshToken(user.getEmail(), authorities);
+
+    CookiesUtils.createCookie(
+        REFRESH_TOKEN_NAME, refreshToken, expirationDay * 24 * 60 * 60, "/", res);
+
+    storeAccessTokenInRedis(accessToken, user.getEmail());
+
+    return AuthenticationResponse.builder().accessToken(accessToken).role(role).build();
   }
 
   private void storeAccessTokenInRedis(String accessToken, String email) {
