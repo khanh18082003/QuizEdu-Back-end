@@ -4,8 +4,10 @@ import java.util.Optional;
 
 import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.dto.request.ChangePasswordDTORequest;
+
 import com.tkt.quizedu.data.dto.request.StudentUpdateRequest;
 import com.tkt.quizedu.data.dto.request.TeacherUpdateRequest;
+
 import com.tkt.quizedu.data.dto.request.UserCreationDTORequest;
 import com.tkt.quizedu.data.dto.response.StudentUpdateResponse;
 import com.tkt.quizedu.data.dto.response.TeacherUpdateResponse;
@@ -23,6 +25,7 @@ public interface IUserService {
   Optional<User> getUserByEmail(String email);
 
   void changePassword(ChangePasswordDTORequest request);
+
 
   StudentUpdateResponse updateStudent(StudentUpdateRequest request);
 

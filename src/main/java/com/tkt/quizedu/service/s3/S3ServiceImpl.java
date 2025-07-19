@@ -1,9 +1,11 @@
 package com.tkt.quizedu.service.s3;
 
+
 import com.tkt.quizedu.data.collection.CustomUserDetail;
 import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.repository.UserRepository;
 import com.tkt.quizedu.utils.SecurityUtils;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +23,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -28,7 +31,9 @@ import java.nio.charset.StandardCharsets;
 public class S3ServiceImpl implements IS3Service {
 
   S3Client s3Client;
+
   private final UserRepository userRepository;
+
 
   @Value("${aws.s3.bucket-name}")
   @NonFinal

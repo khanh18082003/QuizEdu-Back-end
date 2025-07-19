@@ -2,9 +2,11 @@ package com.tkt.quizedu.service.user;
 
 import java.util.Optional;
 
+
 import com.tkt.quizedu.data.dto.request.*;
 import com.tkt.quizedu.data.dto.response.StudentUpdateResponse;
 import com.tkt.quizedu.data.dto.response.TeacherUpdateResponse;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +15,12 @@ import com.tkt.quizedu.data.collection.CustomUserDetail;
 import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.constant.UserRole;
+
+import com.tkt.quizedu.data.dto.request.ChangePasswordDTORequest;
+import com.tkt.quizedu.data.dto.request.StudentCreationDTORequest;
+import com.tkt.quizedu.data.dto.request.TeacherCreationDTORequest;
+import com.tkt.quizedu.data.dto.request.UserCreationDTORequest;
+
 import com.tkt.quizedu.data.dto.response.UserBaseResponse;
 import com.tkt.quizedu.data.mapper.UserMapper;
 import com.tkt.quizedu.data.repository.UserRepository;
@@ -99,7 +107,10 @@ public class UserServiceImpl implements IUserService {
     if (userDetail == null) {
       throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
     }
-    return userMapper.toUserBaseResponse(userDetail.getUser());
+
+    User user = userDetail.getUser();
+
+    return userMapper.toProfileResponse(user);
   }
 
   @Override
