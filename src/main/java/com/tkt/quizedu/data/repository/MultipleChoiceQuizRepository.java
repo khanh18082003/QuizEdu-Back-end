@@ -13,5 +13,7 @@ public interface MultipleChoiceQuizRepository extends BaseRepository<MultipleCho
   // Define any additional methods specific to MultipleChoiceQuizRepository if needed
   MultipleChoiceQuiz findByQuizId(String quizId);
 
+  Boolean existsByQuizId(String quizId);
+
   Optional<MultipleChoiceQuiz> findByQuestionsQuestionId(UUID questionId);
 }

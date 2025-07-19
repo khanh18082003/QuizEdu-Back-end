@@ -11,10 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import com.tkt.quizedu.component.Translator;
 import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
-import com.tkt.quizedu.data.dto.request.QuestionMultipleChoiceRequest;
-import com.tkt.quizedu.data.dto.request.QuizCreationRequest;
-import com.tkt.quizedu.data.dto.request.UpdateQuestionMultipleChoiceRequest;
-import com.tkt.quizedu.data.dto.response.QuizCreationResponse;
+import com.tkt.quizedu.data.dto.request.*;
+import com.tkt.quizedu.data.dto.response.QuizResponse;
 import com.tkt.quizedu.data.dto.response.SuccessApiResponse;
 import com.tkt.quizedu.service.quiz.IQuizService;
 
@@ -35,8 +33,8 @@ public class QuizController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  SuccessApiResponse<QuizCreationResponse> save(@RequestBody @Valid QuizCreationRequest req) {
-    return SuccessApiResponse.<QuizCreationResponse>builder()
+  SuccessApiResponse<QuizResponse> save(@RequestBody @Valid QuizCreationRequest req) {
+    return SuccessApiResponse.<QuizResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.CREATED.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
@@ -46,8 +44,8 @@ public class QuizController {
 
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  SuccessApiResponse<List<QuizCreationResponse>> getAll() {
-    return SuccessApiResponse.<List<QuizCreationResponse>>builder()
+  SuccessApiResponse<List<QuizResponse>> getAll() {
+    return SuccessApiResponse.<List<QuizResponse>>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
@@ -57,8 +55,8 @@ public class QuizController {
 
   @GetMapping("/{id}")
   @ResponseStatus(HttpStatus.OK)
-  SuccessApiResponse<QuizCreationResponse> getById(@PathVariable String id) {
-    return SuccessApiResponse.<QuizCreationResponse>builder()
+  SuccessApiResponse<QuizResponse> getById(@PathVariable String id) {
+    return SuccessApiResponse.<QuizResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
@@ -91,11 +89,11 @@ public class QuizController {
 
   @PostMapping("/multiple-choice-quizzes/{quizId}/questions")
   @ResponseStatus(HttpStatus.OK)
-  SuccessApiResponse<QuizCreationResponse> addMultipleChoiceQuizQuestion(
+  SuccessApiResponse<QuizResponse> addMultipleChoiceQuizQuestion(
       @PathVariable String quizId,
       @RequestBody @Valid List<QuestionMultipleChoiceRequest> questions) {
-    QuizCreationResponse response = quizService.addMultipleChoiceQuizQuestion(quizId, questions);
-    return SuccessApiResponse.<QuizCreationResponse>builder()
+    QuizResponse response = quizService.addMultipleChoiceQuizQuestion(quizId, questions);
+    return SuccessApiResponse.<QuizResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
@@ -105,12 +103,66 @@ public class QuizController {
 
   @PutMapping("/multiple-choice-quizzes/{quizId}/questions")
   @ResponseStatus(HttpStatus.OK)
-  SuccessApiResponse<QuizCreationResponse> updateMultipleChoiceQuizQuestion(
+  SuccessApiResponse<QuizResponse> updateMultipleChoiceQuizQuestion(
       @PathVariable String quizId,
       @RequestBody @Valid List<UpdateQuestionMultipleChoiceRequest> questions) {
     // Assuming the service method is implemented to handle updates
-    QuizCreationResponse response = quizService.updateMultipleChoiceQuizQuestion(quizId, questions);
-    return SuccessApiResponse.<QuizCreationResponse>builder()
+    QuizResponse response = quizService.updateMultipleChoiceQuizQuestion(quizId, questions);
+    return SuccessApiResponse.<QuizResponse>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(response)
+        .build();
+  }
+
+  // Additional endpoints for matching quizzes, etc. can be added here
+  @PostMapping("/matching-quizzes/{quizId}/questions")
+  @ResponseStatus(HttpStatus.OK)
+  SuccessApiResponse<QuizResponse> addMatchingQuizQuestion(
+      @PathVariable String quizId, @RequestBody @Valid List<MatchingQuestionRequest> questions) {
+    QuizResponse response = quizService.addMatchingQuizQuestion(quizId, questions);
+    return SuccessApiResponse.<QuizResponse>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(response)
+        .build();
+  }
+
+  @DeleteMapping("/matching-quizzes/{quizId}/questions")
+  @ResponseStatus(HttpStatus.OK)
+  SuccessApiResponse<Void> deleteMatchingQuizQuestion(
+      @PathVariable String quizId, @RequestBody @Valid List<UUID> request) {
+    quizService.deleteMatchingQuizQuestion(quizId, request);
+    return SuccessApiResponse.<Void>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
+  }
+
+  @PutMapping("/matching-quizzes/{quizId}/questions")
+  @ResponseStatus(HttpStatus.OK)
+  SuccessApiResponse<QuizResponse> updateMatchingQuizQuestion(
+      @PathVariable String quizId,
+      @RequestBody @Valid List<UpdateMatchingQuestionRequest> questions) {
+    QuizResponse response = quizService.updateMatchingQuizQuestion(quizId, questions);
+    return SuccessApiResponse.<QuizResponse>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(response)
+        .build();
+  }
+
+  // add quiz type if needed
+  @PostMapping("/{quizId}/add")
+  @ResponseStatus(HttpStatus.OK)
+  SuccessApiResponse<QuizResponse> addQuizQuestion(
+      @PathVariable String quizId, @RequestBody @Valid AddQuizRequest request) {
+    QuizResponse response = quizService.addQuizQuestion(quizId, request);
+    return SuccessApiResponse.<QuizResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))

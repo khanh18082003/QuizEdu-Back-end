@@ -3,20 +3,27 @@ package com.tkt.quizedu.data.dto.response;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tkt.quizedu.data.constant.UserRole;
 
-import lombok.Builder;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
-@Builder
-public record UserBaseResponse(
-    String id,
-    String email,
-    String firstName,
-    String lastName,
-    String displayName,
-    String avatar,
-    boolean isActive,
-    UserRole role,
-    LocalDateTime createdAt,
-    LocalDateTime updatedAt)
-    implements Serializable {}
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PROTECTED)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class UserBaseResponse implements Serializable {
+  String id;
+  String email;
+  String firstName;
+  String lastName;
+  String displayName;
+  String avatar;
+  boolean isActive;
+  UserRole role;
+  LocalDateTime createdAt;
+  LocalDateTime updatedAt;
+}

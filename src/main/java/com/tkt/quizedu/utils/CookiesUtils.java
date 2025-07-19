@@ -26,4 +26,13 @@ public class CookiesUtils {
     }
     return null;
   }
+
+  public static void clearCookie(String name, String path, HttpServletResponse response) {
+    Cookie cookie = new Cookie(name, null);
+    cookie.setMaxAge(0); // Set max age to 0 to delete the cookie
+    cookie.setPath(path);
+    cookie.setHttpOnly(true);
+    cookie.setSecure(true); // Set to true if using HTTPS
+    response.addCookie(cookie);
+  }
 }

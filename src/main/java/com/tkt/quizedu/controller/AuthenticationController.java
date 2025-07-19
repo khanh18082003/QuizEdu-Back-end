@@ -4,17 +4,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.tkt.quizedu.component.Translator;
 import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
-import com.tkt.quizedu.data.dto.request.AuthenticationDTORequest;
-import com.tkt.quizedu.data.dto.request.RefreshTokenDTORequest;
-import com.tkt.quizedu.data.dto.request.VerificationCodeDTORequest;
+import com.tkt.quizedu.data.dto.request.*;
 import com.tkt.quizedu.data.dto.response.AuthenticationResponse;
 import com.tkt.quizedu.data.dto.response.SuccessApiResponse;
 import com.tkt.quizedu.service.auth.IAuthenticationService;
@@ -85,60 +80,11 @@ public class AuthenticationController {
 						"status": 200,
 						"message": "Success",
 					}
-<<<<<<< HEAD
 					"""))),
-        @ApiResponse(
-            responseCode = "400",
-            description = "Invalid request data",
-            content =
-                @Content(
-                    mediaType = "application/json",
-                    examples =
-                        @ExampleObject(
-                            name = "Validation Error",
-                            summary = "Invalid input data",
-                            value =
-                                """
-					{
-						"code": "M002",
-						"status": 400,
-						"message": "Validation failed",
-						"errors": [
-							{
-								"field": "email",
-								"message": "Email must be valid"
-							},
-							{
-								"field": "password",
-								"message": "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character"
-							}
-						]
-					}
-					"""))),
-        @ApiResponse(
-            responseCode = "409",
-            description = "User already exists",
-            content =
-                @Content(
-                    mediaType = "application/json",
-                    examples =
-                        @ExampleObject(
-                            name = "Conflict Error",
-                            summary = "Email already registered",
-                            value =
-                                """
-					{
-						"code": "M003",
-						"status": 409,
-						"message": "Email already exists"
-					}
-=======
->>>>>>> khanh/authentication_user
-					""")))
       })
   SuccessApiResponse<Void> validateVerificationCode(
       @Valid @RequestBody VerificationCodeDTORequest req) {
-    authenticationService.validateVerificationCode(req.userId(), req.code());
+    authenticationService.validateVerificationCode(req.email(), req.code());
 
     return SuccessApiResponse.<Void>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
@@ -160,17 +106,60 @@ public class AuthenticationController {
         .build();
   }
 
-  @PostMapping("/refresh-token")
-  SuccessApiResponse<AuthenticationResponse> refreshToken(
-      HttpServletRequest httpServletRequest, @RequestBody RefreshTokenDTORequest request) {
-    AuthenticationResponse response =
-        authenticationService.refreshToken(httpServletRequest, request.role());
+  @PostMapping("/outbound/authentication")
+  SuccessApiResponse<AuthenticationResponse> outboundAuthenticate(
+      @RequestParam("code") String code,
+      @RequestParam("role") String role,
+      HttpServletResponse res) {
 
     return SuccessApiResponse.<AuthenticationResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(authenticationService.outboundAuthenticate(code, role, res))
+        .build();
+  }
+
+  @PostMapping("/refresh-token")
+  SuccessApiResponse<AuthenticationResponse> refreshToken(HttpServletRequest httpServletRequest) {
+    log.info("Refreshing token for request: {}", httpServletRequest.getRequestURI());
+    AuthenticationResponse response = authenticationService.refreshToken(httpServletRequest);
+    log.info("Token refreshed successfully: {}", response);
+    return SuccessApiResponse.<AuthenticationResponse>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .data(response)
+        .build();
+  }
+
+  @PostMapping("/logout")
+  SuccessApiResponse<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+    authenticationService.logout(request, response);
+    return SuccessApiResponse.<Void>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
+  }
+
+  @PostMapping("/resend-code")
+  SuccessApiResponse<Void> resendVerificationCode(@Valid @RequestBody ResendCodeDTORequest req) {
+    authenticationService.resendVerificationCode(req);
+    return SuccessApiResponse.<Void>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
+  }
+
+  @PostMapping("/forgot-password")
+  SuccessApiResponse<Void> verifyEmail(@Valid @RequestBody ForgotPasswordDTORequest req) {
+    authenticationService.verifyEmail(req);
+    return SuccessApiResponse.<Void>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .build();
   }
 }

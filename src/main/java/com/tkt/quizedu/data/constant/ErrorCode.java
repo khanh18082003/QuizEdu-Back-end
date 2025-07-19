@@ -18,7 +18,10 @@ public enum ErrorCode {
   // Authentication Errors and Authorization Errors
   MESSAGE_UNAUTHENTICATED("M100", HttpStatus.UNAUTHORIZED),
   MESSAGE_UNAUTHORIZED("M101", HttpStatus.FORBIDDEN),
-  MESSAGE_INVALID_ID("M102", HttpStatus.NOT_FOUND);
+  MESSAGE_INVALID_ID("M102", HttpStatus.NOT_FOUND),
+  MESSAGE_PASSWORD_NOT_MATCH("M103", HttpStatus.BAD_REQUEST),
+  MESSAGE_NOT_EMPTY("M104", HttpStatus.BAD_REQUEST),
+  ;
 
   private final String code;
   private final HttpStatus statusCode;
