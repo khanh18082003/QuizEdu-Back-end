@@ -2,6 +2,7 @@ package com.tkt.quizedu.data.collection;
 
 import java.io.Serial;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -29,7 +30,8 @@ public class Quiz extends StringIdentityCollection {
   String description;
   String teacherId;
   String subjectId;
-  List<String> classIds;
+  @Builder.Default
+  List<String> classIds = new ArrayList<>();
   @CreatedDate LocalDate createdAt;
   LocalDate updatedAt;
   boolean isActive = true;

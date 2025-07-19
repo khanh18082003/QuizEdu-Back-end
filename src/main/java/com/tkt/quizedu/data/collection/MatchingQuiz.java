@@ -29,7 +29,7 @@ public class MatchingQuiz extends StringIdentityCollection {
     int timeLimit;
     String quizId;
 
-    List<MatchPair> questions;
+    List<MatchPair> matchPairs;
     List<UserAnswer> answerParticipants;
 
     @Data
@@ -54,6 +54,6 @@ public class MatchingQuiz extends StringIdentityCollection {
         UUID matchPairId;
         MatchItem itemA;
         MatchItem itemB;
-        boolean isCorrect;
+        boolean correct;
     }
 }

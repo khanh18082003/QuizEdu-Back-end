@@ -13,4 +13,6 @@ public interface ClassRoomMapper {
 
   @Mapping(target = "isActive", source = "active")
   ClassRoomResponse toClassRoomResponse(ClassRoom classRoom);
+
+
 }

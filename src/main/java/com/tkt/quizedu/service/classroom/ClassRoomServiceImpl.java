@@ -2,6 +2,9 @@ package com.tkt.quizedu.service.classroom;
 
 import java.util.List;
 
+import com.tkt.quizedu.data.collection.Quiz;
+import com.tkt.quizedu.data.repository.QuizRepository;
+import lombok.Builder;
 import org.springframework.stereotype.Service;
 
 import com.tkt.quizedu.data.collection.ClassRoom;
@@ -14,14 +17,17 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
+@Builder
 @Slf4j(topic = "CLASSROOM-SERVICE")
 public class ClassRoomServiceImpl implements IClassRoomService {
   ClassRoomRepository classRoomRepository;
   ClassRoomMapper classRoomMapper;
+  QuizRepository quizRepository;
 
   @Override
   public ClassRoomResponse createClassRoom(ClassRoomRequest classRoomRequest) {
@@ -29,6 +35,30 @@ public class ClassRoomServiceImpl implements IClassRoomService {
     classRoom.setCreatedAt(java.time.LocalDate.now());
     return classRoomMapper.toClassRoomResponse(classRoomRepository.save(classRoom));
   }
+
+  @Override
+    public ClassRoomResponse updateClassRoom(String classRoomId, ClassRoomRequest classRoomRequest) {
+        ClassRoom classRoom =
+            classRoomRepository
+                .findById(classRoomId)
+                .orElseThrow(() -> new RuntimeException("Classroom not found"));
+      classRoom.setName(classRoomRequest.name());
+      classRoom.setDescription(classRoomRequest.description());
+      classRoom.setActive(classRoomRequest.isActive());
+      classRoom.setAssignedQuizIds(classRoomRequest.assignedQuizIds());
+
+        return classRoomMapper.toClassRoomResponse(classRoomRepository.save(classRoom));
+    }
+
+    @Override
+    @Transactional
+    public void deleteClassRoom(String classRoomId) {
+      ClassRoom classRoom =
+          classRoomRepository
+              .findById(classRoomId)
+              .orElseThrow(() -> new RuntimeException("Classroom not found"));
+      classRoomRepository.delete(classRoom);
+    }
 
   @Override
   public Boolean joinClassRoom(String classRoomId, String studentId) {
@@ -47,6 +77,7 @@ public class ClassRoomServiceImpl implements IClassRoomService {
   }
 
   @Override
+  @Transactional
   public Boolean assignQuizToClassroom(String classRoomId, String quizId) {
     ClassRoom classRoom =
         classRoomRepository
@@ -59,6 +90,18 @@ public class ClassRoomServiceImpl implements IClassRoomService {
     assignedQuizIds.add(quizId);
     classRoom.setAssignedQuizIds(assignedQuizIds);
     classRoomRepository.save(classRoom);
+    // Import Quiz and add the classRoomId to the quiz's classIds
+    Quiz quiz =
+        quizRepository
+            .findById(quizId)
+            .orElseThrow(() -> new RuntimeException("Quiz not found"));
+    List<String> classRoomIds = quiz.getClassIds();
+    if (!classRoomIds.contains(classRoomId)) {
+      classRoomIds.add(classRoomId);
+      quiz.setClassIds(classRoomIds);
+      quizRepository.save(quiz);
+    }
+
     return true;
   }
 }

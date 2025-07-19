@@ -9,4 +9,8 @@ public interface IClassRoomService {
   Boolean joinClassRoom(String classRoomId, String studentId);
 
   Boolean assignQuizToClassroom(String classRoomId, String quizId);
+
+  ClassRoomResponse updateClassRoom(String classRoomId, ClassRoomRequest classRoomRequest);
+
+  void deleteClassRoom(String classRoomId);
 }

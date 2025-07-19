@@ -38,6 +38,8 @@ public class SecurityConfig {
     "/classrooms",
     "/quizzes",
     "/quizzes/**",
+    "/quiz-sessions/**",
+          "/quiz-sessions"
   };
 
   @Bean

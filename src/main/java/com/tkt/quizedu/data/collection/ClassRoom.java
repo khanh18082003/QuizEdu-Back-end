@@ -2,6 +2,7 @@ package com.tkt.quizedu.data.collection;
 
 import java.io.Serial;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
@@ -31,8 +32,10 @@ public class ClassRoom extends StringIdentityCollection {
   @Indexed(unique = true)
   String classCode;
 
-  List<String> studentIds;
-  List<String> assignedQuizIds;
+  @Builder.Default
+  List<String> studentIds = new ArrayList<>();
+  @Builder.Default
+  List<String> assignedQuizIds = new ArrayList<>();
   LocalDate createdAt;
   boolean isActive;
 }
