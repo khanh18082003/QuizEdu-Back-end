@@ -2,9 +2,6 @@ package com.tkt.quizedu.controller;
 
 import java.util.concurrent.TimeUnit;
 
-import com.tkt.quizedu.data.dto.request.*;
-import com.tkt.quizedu.data.dto.response.StudentUpdateResponse;
-import com.tkt.quizedu.data.dto.response.TeacherUpdateResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.data.redis.core.RedisTemplate;
@@ -16,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tkt.quizedu.component.Translator;
 import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
+import com.tkt.quizedu.data.dto.request.*;
 import com.tkt.quizedu.data.dto.request.ChangePasswordDTORequest;
 import com.tkt.quizedu.data.dto.request.StudentCreationDTORequest;
 import com.tkt.quizedu.data.dto.request.TeacherCreationDTORequest;
@@ -54,36 +52,11 @@ public class UserController {
     return handleUserRegistration(req);
   }
 
-  @PutMapping("/student/update")
-  @ResponseStatus(HttpStatus.OK)
-  public SuccessApiResponse<StudentUpdateResponse> updateStudent(
-          @RequestBody @Valid StudentUpdateRequest req) {
-    return SuccessApiResponse.<StudentUpdateResponse>builder()
-        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
-        .status(HttpStatus.OK.value())
-        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
-        .data(userService.updateStudent(req))
-        .build();
-  }
-
   @PostMapping("/teacher")
   @ResponseStatus(HttpStatus.CREATED)
   public SuccessApiResponse<UserBaseResponse> registerTeacher(
       @RequestBody @Valid TeacherCreationDTORequest req) {
     return handleUserRegistration(req);
-  }
-
-  @PutMapping("/teacher/update")
-    @ResponseStatus(HttpStatus.OK)
-  public SuccessApiResponse<TeacherUpdateResponse> updateTeacher(
-          @RequestBody @Valid TeacherUpdateRequest req
-  ){
-    return SuccessApiResponse.<TeacherUpdateResponse>builder()
-        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
-        .status(HttpStatus.OK.value())
-        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
-        .data(userService.updateTeacher(req))
-        .build();
   }
 
   private SuccessApiResponse<UserBaseResponse> handleUserRegistration(UserCreationDTORequest req) {
@@ -148,16 +121,49 @@ public class UserController {
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
   }
 
-  @PostMapping("/avatar")
-  SuccessApiResponse<String> uploadAvatar(@RequestPart("avatar") MultipartFile file) {
-    String avatarUrl = s3Service.uploadFile(file);
-    return SuccessApiResponse.<String>builder()
+  @PutMapping("/student/profile")
+  SuccessApiResponse<UserBaseResponse> updateProfile(
+      @RequestPart(name = "avatar", required = false) MultipartFile avatar,
+      @Valid @ModelAttribute StudentUpdateRequest req) {
+    return updateProfile(req, avatar);
+  }
+
+  @PutMapping("/teacher/profile")
+  SuccessApiResponse<UserBaseResponse> updateTeacherProfile(
+      @RequestPart(name = "avatar", required = false) MultipartFile avatar,
+      @Valid @ModelAttribute TeacherUpdateRequest req) {
+
+    return updateProfile(req, avatar);
+  }
+
+  private SuccessApiResponse<UserBaseResponse> updateProfile(
+      UserUpdateDTORequest req, MultipartFile avatar) {
+
+    UserBaseResponse updatedProfile = userService.updateProfile(req, avatar);
+
+    if (updatedProfile instanceof StudentProfileResponse studentProfile) {
+      return SuccessApiResponse.<UserBaseResponse>builder()
+          .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+          .status(HttpStatus.OK.value())
+          .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+          .data(studentProfile)
+          .build();
+    } else if (updatedProfile instanceof TeacherProfileResponse teacherProfile) {
+      return SuccessApiResponse.<UserBaseResponse>builder()
+          .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+          .status(HttpStatus.OK.value())
+          .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+          .data(teacherProfile)
+          .build();
+    }
+    return SuccessApiResponse.<UserBaseResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
-        .data(avatarUrl)
+        .data(updatedProfile)
         .build();
   }
 }
