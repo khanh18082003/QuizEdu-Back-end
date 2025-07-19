@@ -1,11 +1,8 @@
 package com.tkt.quizedu.data.dto.request;
 
-import lombok.Builder;
-
 import java.util.List;
 
+import lombok.Builder;
+
 @Builder
-public record MultipleChoiceQuizRequest(
-        List<QuestionMultipleChoiceRequest> questions
-) {
-}
+public record MultipleChoiceQuizRequest(List<QuestionMultipleChoiceRequest> questions) {}
