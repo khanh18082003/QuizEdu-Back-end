@@ -148,6 +148,7 @@ public class UserController {
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
   }
 
   @PostMapping("/avatar")
