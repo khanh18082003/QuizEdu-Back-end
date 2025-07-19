@@ -2,6 +2,9 @@ package com.tkt.quizedu.controller;
 
 import java.util.concurrent.TimeUnit;
 
+import com.tkt.quizedu.data.dto.request.*;
+import com.tkt.quizedu.data.dto.response.StudentUpdateResponse;
+import com.tkt.quizedu.data.dto.response.TeacherUpdateResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.data.redis.core.RedisTemplate;
@@ -51,11 +54,36 @@ public class UserController {
     return handleUserRegistration(req);
   }
 
+  @PutMapping("/student/update")
+  @ResponseStatus(HttpStatus.OK)
+  public SuccessApiResponse<StudentUpdateResponse> updateStudent(
+          @RequestBody @Valid StudentUpdateRequest req) {
+    return SuccessApiResponse.<StudentUpdateResponse>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(userService.updateStudent(req))
+        .build();
+  }
+
   @PostMapping("/teacher")
   @ResponseStatus(HttpStatus.CREATED)
   public SuccessApiResponse<UserBaseResponse> registerTeacher(
       @RequestBody @Valid TeacherCreationDTORequest req) {
     return handleUserRegistration(req);
+  }
+
+  @PutMapping("/teacher/update")
+    @ResponseStatus(HttpStatus.OK)
+  public SuccessApiResponse<TeacherUpdateResponse> updateTeacher(
+          @RequestBody @Valid TeacherUpdateRequest req
+  ){
+    return SuccessApiResponse.<TeacherUpdateResponse>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(userService.updateTeacher(req))
+        .build();
   }
 
   private SuccessApiResponse<UserBaseResponse> handleUserRegistration(UserCreationDTORequest req) {
@@ -75,6 +103,7 @@ public class UserController {
   private void sendVerificationEmail(UserBaseResponse userResponse, UserCreationDTORequest req) {
     String code = GenerateVerificationCode.generateCode();
     String key = "user:confirmation:" + userResponse.getEmail();
+
     redisTemplate.opsForValue().set(key, code, 10, TimeUnit.MINUTES);
 
     String message =
@@ -119,7 +148,6 @@ public class UserController {
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
-        .build();
   }
 
   @PostMapping("/avatar")

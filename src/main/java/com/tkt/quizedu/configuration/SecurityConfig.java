@@ -39,7 +39,6 @@ public class SecurityConfig {
     "/users/student",
     "/users/teacher",
     "/users/change-password",
-    "/users/avatar",
     "/auth",
     "/auth/verification-code",
     "/auth/refresh-token",

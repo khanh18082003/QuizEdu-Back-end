@@ -23,8 +23,8 @@ public class LevelValidator implements ConstraintValidator<LevelValid, String> {
       return false;
     }
     try {
-      UserRole role = UserRole.valueOf(value.toUpperCase());
-      return validLevels.contains(role);
+      EducationLevel educationLevel = EducationLevel.valueOf(value.toUpperCase());
+      return validLevels.contains(educationLevel);
     } catch (IllegalArgumentException e) {
       return false;
     }

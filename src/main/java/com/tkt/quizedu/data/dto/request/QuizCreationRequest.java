@@ -9,7 +9,6 @@ public record QuizCreationRequest(
     String name,
     String description,
     String subjectId,
-    List<String> classIds,
     boolean isActive,
     MultipleChoiceQuizRequest multipleChoiceQuiz,
     MatchingQuizRequest matchingQuiz
