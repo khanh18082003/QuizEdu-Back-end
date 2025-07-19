@@ -2,6 +2,9 @@ package com.tkt.quizedu.controller;
 
 import java.util.concurrent.TimeUnit;
 
+import com.tkt.quizedu.data.dto.request.*;
+import com.tkt.quizedu.data.dto.response.StudentUpdateResponse;
+import com.tkt.quizedu.data.dto.response.TeacherUpdateResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.data.redis.core.RedisTemplate;
@@ -13,10 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tkt.quizedu.component.Translator;
 import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
-import com.tkt.quizedu.data.dto.request.ChangePasswordDTORequest;
-import com.tkt.quizedu.data.dto.request.StudentCreationDTORequest;
-import com.tkt.quizedu.data.dto.request.TeacherCreationDTORequest;
-import com.tkt.quizedu.data.dto.request.UserCreationDTORequest;
 import com.tkt.quizedu.data.dto.response.SuccessApiResponse;
 import com.tkt.quizedu.data.dto.response.UserBaseResponse;
 import com.tkt.quizedu.service.s3.IS3Service;
@@ -49,11 +48,36 @@ public class UserController {
     return handleUserRegistration(req);
   }
 
+  @PutMapping("/student/update")
+  @ResponseStatus(HttpStatus.OK)
+  public SuccessApiResponse<StudentUpdateResponse> updateStudent(
+          @RequestBody @Valid StudentUpdateRequest req) {
+    return SuccessApiResponse.<StudentUpdateResponse>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(userService.updateStudent(req))
+        .build();
+  }
+
   @PostMapping("/teacher")
   @ResponseStatus(HttpStatus.CREATED)
   public SuccessApiResponse<UserBaseResponse> registerTeacher(
       @RequestBody @Valid TeacherCreationDTORequest req) {
     return handleUserRegistration(req);
+  }
+
+  @PutMapping("/teacher/update")
+    @ResponseStatus(HttpStatus.OK)
+  public SuccessApiResponse<TeacherUpdateResponse> updateTeacher(
+          @RequestBody @Valid TeacherUpdateRequest req
+  ){
+    return SuccessApiResponse.<TeacherUpdateResponse>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(userService.updateTeacher(req))
+        .build();
   }
 
   private SuccessApiResponse<UserBaseResponse> handleUserRegistration(UserCreationDTORequest req) {

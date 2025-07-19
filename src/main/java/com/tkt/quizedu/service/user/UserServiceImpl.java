@@ -2,6 +2,9 @@ package com.tkt.quizedu.service.user;
 
 import java.util.Optional;
 
+import com.tkt.quizedu.data.dto.request.*;
+import com.tkt.quizedu.data.dto.response.StudentUpdateResponse;
+import com.tkt.quizedu.data.dto.response.TeacherUpdateResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,10 +13,6 @@ import com.tkt.quizedu.data.collection.CustomUserDetail;
 import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.constant.UserRole;
-import com.tkt.quizedu.data.dto.request.ChangePasswordDTORequest;
-import com.tkt.quizedu.data.dto.request.StudentCreationDTORequest;
-import com.tkt.quizedu.data.dto.request.TeacherCreationDTORequest;
-import com.tkt.quizedu.data.dto.request.UserCreationDTORequest;
 import com.tkt.quizedu.data.dto.response.UserBaseResponse;
 import com.tkt.quizedu.data.mapper.UserMapper;
 import com.tkt.quizedu.data.repository.UserRepository;
@@ -122,5 +121,29 @@ public class UserServiceImpl implements IUserService {
     user.setPassword(passwordEncoder.encode(request.newPassword()));
 
     userRepository.save(user);
+  }
+
+  @Override
+  public StudentUpdateResponse updateStudent(StudentUpdateRequest request) {
+    CustomUserDetail userDetail = SecurityUtils.getUserDetail();
+    User user =
+        userRepository
+            .findById(userDetail.getUser().getId())
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    userMapper.toUserFromStudentUpdateRequest(request);
+    userRepository.save(user);
+    return userMapper.toStudentUpdateResponse(user);
+  }
+
+  @Override
+  public TeacherUpdateResponse updateTeacher(TeacherUpdateRequest request) {
+    CustomUserDetail userDetail = SecurityUtils.getUserDetail();
+    User user =
+        userRepository
+            .findById(userDetail.getUser().getId())
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    userMapper.toUserFromTeacherUpdateRequest(request);
+    userRepository.save(user);
+    return userMapper.toTeacherUpdateResponse(user);
   }
 }

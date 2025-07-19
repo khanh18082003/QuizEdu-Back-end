@@ -8,8 +8,7 @@ import lombok.Builder;
 public record QuizCreationRequest(
     String name,
     String description,
-        String subjectId,
-        List<String> classIds,
+    String subjectId,
     boolean isActive,
     MultipleChoiceQuizRequest multipleChoiceQuiz,
     MatchingQuizRequest matchingQuiz
