@@ -46,6 +46,10 @@ public class SecurityConfig {
     "/auth/forgot-password",
     "/auth/outbound/authentication",
     "/classrooms",
+    "/quizzes",
+    "/quizzes/**",
+    "/quiz-sessions/**",
+          "/quiz-sessions"
   };
 
   @Bean

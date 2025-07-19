@@ -2,6 +2,8 @@ package com.tkt.quizedu.data.collection;
 
 import java.io.Serial;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
@@ -29,13 +31,18 @@ public class QuizSession extends StringIdentityCollection {
   String teacherId;
   SessionStatus status;
   String accessCode;
-  LocalDate startTime;
-  LocalDate endTime;
-  List<Participant> participants;
+  LocalDateTime startTime;
+  LocalDateTime endTime;
+  @Builder.Default
+  List<Participant> participants = new ArrayList<>();
 
   @Data
   public static class Participant {
     String userId;
-    LocalDate joinedAt;
+    LocalDateTime joinedAt;
+    public Participant(String userId, LocalDateTime now) {
+        this.userId = userId;
+        this.joinedAt = now;
+    }
   }
 }
