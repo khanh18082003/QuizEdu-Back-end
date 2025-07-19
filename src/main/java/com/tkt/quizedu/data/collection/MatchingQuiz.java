@@ -22,40 +22,41 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 public class MatchingQuiz extends StringIdentityCollection {
-    @Serial
-    private static final long serialVersionUID = -5465733518693373245L;
-    @Id
-    String id;
-    int timeLimit;
-    String quizId;
+  @Serial private static final long serialVersionUID = -5465733518693373245L;
+  @Id String id;
+  int timeLimit;
+  String quizId;
 
-    List<MatchPair> questions;
-    List<UserAnswer> answerParticipants;
+  List<MatchPair> questions;
+  List<UserAnswer> answerParticipants;
 
-    @Data
-    public static class MatchPair {
-        UUID id;
-        MatchItem itemA;
-        MatchItem itemB;
-        int points;
-    }
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MatchItem {
-        String content;
-        MatchingType matchingType;
-    }
-    @Data
-    public static class UserAnswer {
-        String userId;
-        List<AnswerPair> answers;
-    }
-    @Data
-    public static class AnswerPair {
-        UUID matchPairId;
-        MatchItem itemA;
-        MatchItem itemB;
-        boolean isCorrect;
-    }
+  @Data
+  public static class MatchPair {
+    UUID id;
+    MatchItem itemA;
+    MatchItem itemB;
+    int points;
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class MatchItem {
+    String content;
+    MatchingType matchingType;
+  }
+
+  @Data
+  public static class UserAnswer {
+    String userId;
+    List<AnswerPair> answers;
+  }
+
+  @Data
+  public static class AnswerPair {
+    UUID matchPairId;
+    MatchItem itemA;
+    MatchItem itemB;
+    boolean isCorrect;
+  }
 }

@@ -22,12 +22,14 @@ public interface IQuizService {
 
   QuizResponse updateMultipleChoiceQuizQuestion(
       String quizId, List<UpdateQuestionMultipleChoiceRequest> questions);
-  //Matching
-  QuizResponse addMatchingQuizQuestion(
-        String quizId, List<MatchingQuestionRequest> questions);
+
+  // Matching
+  QuizResponse addMatchingQuizQuestion(String quizId, List<MatchingQuestionRequest> questions);
+
   void deleteMatchingQuizQuestion(String quizId, List<UUID> request);
-    QuizResponse updateMatchingQuizQuestion(
-        String quizId, List<UpdateMatchingQuestionRequest> questions);
-  QuizResponse addQuizQuestion(
-      String quizId, AddQuizRequest request);
+
+  QuizResponse updateMatchingQuizQuestion(
+      String quizId, List<UpdateMatchingQuestionRequest> questions);
+
+  QuizResponse addQuizQuestion(String quizId, AddQuizRequest request);
 }

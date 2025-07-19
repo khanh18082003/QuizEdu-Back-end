@@ -2,9 +2,6 @@ package com.tkt.quizedu.data.dto.request;
 
 import java.util.List;
 
-import com.tkt.quizedu.data.collection.MatchingQuiz;
-import com.tkt.quizedu.data.collection.MultipleChoiceQuiz;
-
 import lombok.Builder;
 
 @Builder

@@ -100,7 +100,10 @@ public class UserServiceImpl implements IUserService {
     if (userDetail == null) {
       throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
     }
-    return userMapper.toUserBaseResponse(userDetail.getUser());
+
+    User user = userDetail.getUser();
+
+    return userMapper.toProfileResponse(user);
   }
 
   @Override
