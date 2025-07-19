@@ -38,10 +38,14 @@ public class SecurityConfig {
   private static final String[] NO_AUTHENTICATION_ENDPOINTS = {
     "/users/student",
     "/users/teacher",
+    "/users/change-password",
+    "/users/avatar",
     "/auth",
     "/auth/verification-code",
     "/auth/refresh-token",
     "/auth/resend-code",
+    "/auth/forgot-password",
+    "/auth/outbound/authentication",
     "/classrooms",
   };
 
