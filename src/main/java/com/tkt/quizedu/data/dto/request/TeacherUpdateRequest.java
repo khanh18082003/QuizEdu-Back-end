@@ -1,5 +1,6 @@
 package com.tkt.quizedu.data.dto.request;
 
+import java.io.Serializable;
 import java.util.Set;
 
 import lombok.*;
@@ -10,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TeacherUpdateRequest extends UserUpdateRequest {
+public class TeacherUpdateRequest extends UserUpdateDTORequest implements Serializable {
   Set<String> subjects;
   String experience;
   String schoolName;

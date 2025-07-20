@@ -1,15 +1,16 @@
-package com.tkt.quizedu.data.dto.response;
+package com.tkt.quizedu.data.dto.request;
+
+import java.io.Serializable;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldDefaults(level = AccessLevel.PROTECTED)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserUpdateResponse {
-  String email;
+public class UserUpdateDTORequest implements Serializable {
   String firstName;
   String lastName;
   String displayName;
