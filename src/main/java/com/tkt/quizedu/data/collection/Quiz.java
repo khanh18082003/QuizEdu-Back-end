@@ -30,8 +30,7 @@ public class Quiz extends StringIdentityCollection {
   String description;
   String teacherId;
   String subjectId;
-  @Builder.Default
-  List<String> classIds = new ArrayList<>();
+  @Builder.Default List<String> classIds = new ArrayList<>();
   @CreatedDate LocalDate createdAt;
   LocalDate updatedAt;
   boolean isActive = true;

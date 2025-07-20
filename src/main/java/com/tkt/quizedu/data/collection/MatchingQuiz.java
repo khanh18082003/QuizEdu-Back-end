@@ -1,6 +1,7 @@
 package com.tkt.quizedu.data.collection;
 
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,9 +27,8 @@ public class MatchingQuiz extends StringIdentityCollection {
   @Id String id;
   int timeLimit;
   String quizId;
-
-  List<MatchPair> questions;
-  List<UserAnswer> answerParticipants;
+  @Builder.Default List<MatchPair> matchPairs = new ArrayList<>();
+  @Builder.Default List<UserAnswer> answerParticipants = new ArrayList<>();
 
   @Data
   public static class MatchPair {
@@ -46,10 +46,11 @@ public class MatchingQuiz extends StringIdentityCollection {
     MatchingType matchingType;
   }
 
+  @Builder
   @Data
   public static class UserAnswer {
     String userId;
-    List<AnswerPair> answers;
+    @Builder.Default List<AnswerPair> answers = new ArrayList<>();
   }
 
   @Data

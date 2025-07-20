@@ -1,9 +1,9 @@
 package com.tkt.quizedu.data.dto.response;
 
+import java.util.Set;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.util.Set;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
@@ -11,14 +11,21 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TeacherUpdateResponse extends UserUpdateResponse {
-    Set<String> subjects;
-    String experience;
-    String schoolName;
+  Set<String> subjects;
+  String experience;
+  String schoolName;
 
-    public TeacherUpdateResponse(String email, String firstName, String lastName, String displayName, Set<String> subjects, String experience, String schoolName) {
-        super(email, firstName, lastName, displayName);
-        this.subjects = subjects;
-        this.experience = experience;
-        this.schoolName = schoolName;
-    }
+  public TeacherUpdateResponse(
+      String email,
+      String firstName,
+      String lastName,
+      String displayName,
+      Set<String> subjects,
+      String experience,
+      String schoolName) {
+    super(email, firstName, lastName, displayName);
+    this.subjects = subjects;
+    this.experience = experience;
+    this.schoolName = schoolName;
+  }
 }

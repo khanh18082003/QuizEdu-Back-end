@@ -2,9 +2,6 @@ package com.tkt.quizedu.controller;
 
 import java.util.concurrent.TimeUnit;
 
-import com.tkt.quizedu.data.dto.request.*;
-import com.tkt.quizedu.data.dto.response.StudentUpdateResponse;
-import com.tkt.quizedu.data.dto.response.TeacherUpdateResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.data.redis.core.RedisTemplate;
@@ -16,14 +13,12 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tkt.quizedu.component.Translator;
 import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
+import com.tkt.quizedu.data.dto.request.*;
 import com.tkt.quizedu.data.dto.request.ChangePasswordDTORequest;
 import com.tkt.quizedu.data.dto.request.StudentCreationDTORequest;
 import com.tkt.quizedu.data.dto.request.TeacherCreationDTORequest;
 import com.tkt.quizedu.data.dto.request.UserCreationDTORequest;
-import com.tkt.quizedu.data.dto.response.StudentProfileResponse;
-import com.tkt.quizedu.data.dto.response.SuccessApiResponse;
-import com.tkt.quizedu.data.dto.response.TeacherProfileResponse;
-import com.tkt.quizedu.data.dto.response.UserBaseResponse;
+import com.tkt.quizedu.data.dto.response.*;
 import com.tkt.quizedu.service.s3.IS3Service;
 import com.tkt.quizedu.service.user.IUserService;
 import com.tkt.quizedu.utils.GenerateVerificationCode;
@@ -57,7 +52,7 @@ public class UserController {
   @PutMapping("/student/update")
   @ResponseStatus(HttpStatus.OK)
   public SuccessApiResponse<StudentUpdateResponse> updateStudent(
-          @RequestBody @Valid StudentUpdateRequest req) {
+      @RequestBody @Valid StudentUpdateRequest req) {
     return SuccessApiResponse.<StudentUpdateResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
@@ -74,10 +69,9 @@ public class UserController {
   }
 
   @PutMapping("/teacher/update")
-    @ResponseStatus(HttpStatus.OK)
+  @ResponseStatus(HttpStatus.OK)
   public SuccessApiResponse<TeacherUpdateResponse> updateTeacher(
-          @RequestBody @Valid TeacherUpdateRequest req
-  ){
+      @RequestBody @Valid TeacherUpdateRequest req) {
     return SuccessApiResponse.<TeacherUpdateResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
@@ -159,6 +153,19 @@ public class UserController {
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .data(avatarUrl)
+        .build();
+  }
+
+  @GetMapping("/getAllClassRooms/{userId}")
+  SuccessApiResponse<PaginationResponse<ClassRoomResponse>> getAllClassRooms(
+      @PathVariable String userId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int pageSize) {
+    return SuccessApiResponse.<PaginationResponse<ClassRoomResponse>>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(userService.getAllClassRooms(userId, page, pageSize))
         .build();
   }
 }

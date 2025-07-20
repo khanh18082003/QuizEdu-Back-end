@@ -1,5 +1,6 @@
 package com.tkt.quizedu.service.quiz;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -66,7 +67,7 @@ public class QuizServiceImpl implements IQuizService {
       // Gán lại danh sách MatchPair nếu bạn map từng MatchPair riêng
       List<MatchingQuiz.MatchPair> pairs =
           matchingQuizMapper.toMatchPairList(request.matchingQuiz().questions());
-      matchingQuiz.setQuestions(pairs);
+      matchingQuiz.setMatchPairs(pairs);
       matchingQuizRepository.save(matchingQuiz);
     }
     return QuizResponse.builder()
@@ -237,6 +238,132 @@ public class QuizServiceImpl implements IQuizService {
   }
 
   @Override
+  public int evaluateMultipleChoiceQuizQuestion(
+      String quizId, List<SubmitMultipleChoiceRequest> requestList) {
+    MultipleChoiceQuiz multipleChoiceQuiz = multipleChoiceQuizRepository.findByQuizId(quizId);
+    if (multipleChoiceQuiz == null) {
+      throw new RuntimeException("Multiple choice quiz not found for quizId: " + quizId);
+    }
+
+    List<MultipleChoiceQuiz.Question> questions = multipleChoiceQuiz.getQuestions();
+    if (questions == null || questions.isEmpty()) {
+      throw new RuntimeException("No questions found in the multiple choice quiz");
+    }
+
+    int totalScore = 0;
+
+    for (SubmitMultipleChoiceRequest submitRequest : requestList) {
+      MultipleChoiceQuiz.Question question =
+          questions.stream()
+              .filter(q -> q.getQuestionId().toString().equals(submitRequest.questionId()))
+              .findFirst()
+              .orElseThrow(
+                  () -> new RuntimeException("Question not found: " + submitRequest.questionId()));
+
+      List<MultipleChoiceQuiz.Question.AnswerParticipant> evaluatedParticipants =
+          submitRequest.answerParticipant().stream()
+              .map(
+                  participant -> {
+                    boolean isCorrect =
+                        question.getAnswers().stream()
+                            .anyMatch(
+                                answer ->
+                                    answer.getAnswerText().equals(participant.getAnswer())
+                                        && answer.isCorrect());
+
+                    MultipleChoiceQuiz.Question.AnswerParticipant evaluated =
+                        new MultipleChoiceQuiz.Question.AnswerParticipant();
+                    evaluated.setUserId(participant.getUserId());
+                    evaluated.setAnswer(participant.getAnswer());
+                    evaluated.setCorrect(isCorrect);
+                    return evaluated;
+                  })
+              .toList();
+
+      // Gắn danh sách kết quả đã đánh giá vào câu hỏi
+      question.setAnswerParticipants(evaluatedParticipants);
+
+      // Nếu người dùng chọn đúng tất cả đáp án đúng (và không chọn sai), tính điểm
+      List<String> correctAnswers =
+          question.getAnswers().stream()
+              .filter(MultipleChoiceQuiz.Question.AnswerOption::isCorrect)
+              .map(MultipleChoiceQuiz.Question.AnswerOption::getAnswerText)
+              .toList();
+
+      List<String> userAnswers =
+          evaluatedParticipants.stream()
+              .filter(MultipleChoiceQuiz.Question.AnswerParticipant::isCorrect)
+              .map(MultipleChoiceQuiz.Question.AnswerParticipant::getAnswer)
+              .toList();
+
+      boolean fullCorrect =
+          correctAnswers.size() == userAnswers.size() && correctAnswers.containsAll(userAnswers);
+
+      if (fullCorrect) {
+        totalScore += question.getPoints();
+      }
+    }
+
+    multipleChoiceQuizRepository.save(multipleChoiceQuiz);
+    return totalScore;
+  }
+
+  @Override
+  public int evaluateMatchingQuizQuestion(String quizId, MatchingQuiz.UserAnswer request) {
+    MatchingQuiz matchingQuiz = matchingQuizRepository.findByQuizId(quizId);
+    if (matchingQuiz == null) {
+      throw new RuntimeException("Matching quiz not found for quizId: " + quizId);
+    }
+
+    List<MatchingQuiz.MatchPair> matchPairs = matchingQuiz.getMatchPairs();
+    if (matchPairs == null || matchPairs.isEmpty()) {
+      throw new RuntimeException("No questions found in the matching quiz");
+    }
+
+    List<MatchingQuiz.AnswerPair> evaluatedAnswers = new ArrayList<>();
+    int totalScore = 0;
+
+    for (MatchingQuiz.AnswerPair submittedAnswer : request.getAnswers()) {
+      boolean isCorrect = false;
+      int points = 0;
+
+      for (MatchingQuiz.MatchPair pair : matchPairs) {
+        if (pair.getId().equals(submittedAnswer.getMatchPairId())) {
+          if (pair.getItemA().getContent().equals(submittedAnswer.getItemA().getContent())
+              && pair.getItemB().getContent().equals(submittedAnswer.getItemB().getContent())) {
+            isCorrect = true;
+            points = pair.getPoints(); // cộng điểm nếu đúng
+          }
+          break;
+        }
+      }
+
+      MatchingQuiz.AnswerPair evaluatedAnswer = new MatchingQuiz.AnswerPair();
+      evaluatedAnswer.setMatchPairId(submittedAnswer.getMatchPairId());
+      evaluatedAnswer.setItemA(submittedAnswer.getItemA());
+      evaluatedAnswer.setItemB(submittedAnswer.getItemB());
+      evaluatedAnswer.setCorrect(isCorrect);
+
+      if (isCorrect) {
+        totalScore += points;
+      }
+
+      evaluatedAnswers.add(evaluatedAnswer);
+    }
+
+    MatchingQuiz.UserAnswer userAnswer =
+        MatchingQuiz.UserAnswer.builder()
+            .userId(request.getUserId())
+            .answers(evaluatedAnswers)
+            .build();
+
+    matchingQuiz.getAnswerParticipants().add(userAnswer);
+    matchingQuizRepository.save(matchingQuiz);
+
+    return totalScore;
+  }
+
+  @Override
   public QuizResponse addMatchingQuizQuestion(
       String quizId, List<MatchingQuestionRequest> questions) {
     Quiz quiz =
@@ -254,7 +381,7 @@ public class QuizServiceImpl implements IQuizService {
                   return pair;
                 })
             .toList();
-    matchingQuiz.getQuestions().addAll(newPairs);
+    matchingQuiz.getMatchPairs().addAll(newPairs);
     matchingQuizRepository.save(matchingQuiz);
     return QuizResponse.builder()
         .quiz(quiz)
@@ -267,16 +394,16 @@ public class QuizServiceImpl implements IQuizService {
     Quiz quiz =
         quizRepository.findById(quizId).orElseThrow(() -> new RuntimeException("Quiz not found"));
     MatchingQuiz matchingQuiz = matchingQuizRepository.findByQuizId(quizId);
-    if (matchingQuiz == null || matchingQuiz.getQuestions() == null) {
+    if (matchingQuiz == null || matchingQuiz.getMatchPairs() == null) {
       throw new RuntimeException("Matching quiz or questions not found");
     }
-    int beforeSize = matchingQuiz.getQuestions().size();
+    int beforeSize = matchingQuiz.getMatchPairs().size();
     // Xoá các câu hỏi có ID nằm trong danh sách cần xoá
-    matchingQuiz.setQuestions(
-        matchingQuiz.getQuestions().stream()
+    matchingQuiz.setMatchPairs(
+        matchingQuiz.getMatchPairs().stream()
             .filter(q -> !request.contains(q.getId()))
             .collect(Collectors.toList()));
-    int afterSize = matchingQuiz.getQuestions().size();
+    int afterSize = matchingQuiz.getMatchPairs().size();
     if (beforeSize == afterSize) {
       throw new RuntimeException("No matching question(s) found to delete.");
     }
@@ -294,7 +421,7 @@ public class QuizServiceImpl implements IQuizService {
       throw new RuntimeException("Matching quiz not found");
     }
 
-    List<MatchingQuiz.MatchPair> originalPairs = matchingQuiz.getQuestions();
+    List<MatchingQuiz.MatchPair> originalPairs = matchingQuiz.getMatchPairs();
 
     questions.forEach(
         req -> {
@@ -349,7 +476,7 @@ public class QuizServiceImpl implements IQuizService {
 
         matchingQuiz = matchingQuizMapper.toMatchingQuiz(matchingQuizRequest);
         matchingQuiz.setQuizId(quizId);
-        matchingQuiz.setQuestions(
+        matchingQuiz.setMatchPairs(
             matchingQuizMapper.toMatchPairList(matchingQuizRequest.questions()));
         matchingQuiz = matchingQuizRepository.save(matchingQuiz);
       }

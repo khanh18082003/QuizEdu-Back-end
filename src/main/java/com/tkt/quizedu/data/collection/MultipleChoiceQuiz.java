@@ -45,7 +45,6 @@ public class MultipleChoiceQuiz extends StringIdentityCollection {
     public static class AnswerParticipant {
       String userId;
       String answer;
-      String correctAnswer;
       boolean correct;
     }
 

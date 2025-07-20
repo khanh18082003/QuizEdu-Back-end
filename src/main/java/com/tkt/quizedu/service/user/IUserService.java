@@ -4,14 +4,10 @@ import java.util.Optional;
 
 import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.dto.request.ChangePasswordDTORequest;
-
 import com.tkt.quizedu.data.dto.request.StudentUpdateRequest;
 import com.tkt.quizedu.data.dto.request.TeacherUpdateRequest;
-
 import com.tkt.quizedu.data.dto.request.UserCreationDTORequest;
-import com.tkt.quizedu.data.dto.response.StudentUpdateResponse;
-import com.tkt.quizedu.data.dto.response.TeacherUpdateResponse;
-import com.tkt.quizedu.data.dto.response.UserBaseResponse;
+import com.tkt.quizedu.data.dto.response.*;
 
 public interface IUserService {
   UserBaseResponse save(UserCreationDTORequest req);
@@ -26,8 +22,9 @@ public interface IUserService {
 
   void changePassword(ChangePasswordDTORequest request);
 
-
   StudentUpdateResponse updateStudent(StudentUpdateRequest request);
 
   TeacherUpdateResponse updateTeacher(TeacherUpdateRequest request);
+
+  PaginationResponse<ClassRoomResponse> getAllClassRooms(String userId, int page, int pageSize);
 }

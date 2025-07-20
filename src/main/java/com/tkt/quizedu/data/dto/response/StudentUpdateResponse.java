@@ -8,13 +8,19 @@ import lombok.experimental.FieldDefaults;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class StudentUpdateResponse extends UserUpdateResponse{
-    String level;
-    String schoolName;
+public class StudentUpdateResponse extends UserUpdateResponse {
+  String level;
+  String schoolName;
 
-    public StudentUpdateResponse(String email, String firstName, String lastName, String displayName, String level, String schoolName) {
-        super(email, firstName, lastName, displayName);
-        this.level = level;
-        this.schoolName = schoolName;
-    }
+  public StudentUpdateResponse(
+      String email,
+      String firstName,
+      String lastName,
+      String displayName,
+      String level,
+      String schoolName) {
+    super(email, firstName, lastName, displayName);
+    this.level = level;
+    this.schoolName = schoolName;
+  }
 }

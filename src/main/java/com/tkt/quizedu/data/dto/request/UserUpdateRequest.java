@@ -9,7 +9,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserUpdateRequest {
-    String firstName;
-    String lastName;
-    String displayName;
+  String firstName;
+  String lastName;
+  String displayName;
 }

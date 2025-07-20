@@ -1,28 +1,26 @@
 package com.tkt.quizedu.service.user;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-
-
-import com.tkt.quizedu.data.dto.request.*;
-import com.tkt.quizedu.data.dto.response.StudentUpdateResponse;
-import com.tkt.quizedu.data.dto.response.TeacherUpdateResponse;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tkt.quizedu.data.collection.ClassRoom;
 import com.tkt.quizedu.data.collection.CustomUserDetail;
 import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.constant.UserRole;
-
+import com.tkt.quizedu.data.dto.request.*;
 import com.tkt.quizedu.data.dto.request.ChangePasswordDTORequest;
 import com.tkt.quizedu.data.dto.request.StudentCreationDTORequest;
 import com.tkt.quizedu.data.dto.request.TeacherCreationDTORequest;
 import com.tkt.quizedu.data.dto.request.UserCreationDTORequest;
-
-import com.tkt.quizedu.data.dto.response.UserBaseResponse;
+import com.tkt.quizedu.data.dto.response.*;
 import com.tkt.quizedu.data.mapper.UserMapper;
+import com.tkt.quizedu.data.repository.ClassRoomRepository;
 import com.tkt.quizedu.data.repository.UserRepository;
 import com.tkt.quizedu.exception.QuizException;
 import com.tkt.quizedu.utils.SecurityUtils;
@@ -40,6 +38,7 @@ public class UserServiceImpl implements IUserService {
   UserRepository userRepository;
   UserMapper userMapper;
   PasswordEncoder passwordEncoder;
+  ClassRoomRepository classRoomRepository;
 
   @Override
   @Transactional
@@ -156,5 +155,37 @@ public class UserServiceImpl implements IUserService {
     userMapper.toUserFromTeacherUpdateRequest(request);
     userRepository.save(user);
     return userMapper.toTeacherUpdateResponse(user);
+  }
+
+  @Override
+  public PaginationResponse<ClassRoomResponse> getAllClassRooms(
+      String userId, int page, int pageSize) {
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    List<ClassRoomResponse> classRoomResponses = new ArrayList<>();
+    for (String classRoomId : user.getClassIds()) {
+      ClassRoom classRoom =
+          classRoomRepository
+              .findById(classRoomId)
+              .orElseThrow(() -> new RuntimeException("Classroom not found"));
+      classRoomResponses.add(
+          ClassRoomResponse.builder()
+              .id(classRoom.getId())
+              .name(classRoom.getName())
+              .description(classRoom.getDescription())
+              .teacherId(classRoom.getTeacherId())
+              .studentIds(classRoom.getStudentIds())
+              .assignedQuizIds(classRoom.getAssignedQuizIds())
+              .build());
+    }
+
+    return PaginationResponse.<ClassRoomResponse>builder()
+        .data(classRoomResponses)
+        .page(page)
+        .pageSize(pageSize)
+        .total(classRoomResponses.size())
+        .build();
   }
 }

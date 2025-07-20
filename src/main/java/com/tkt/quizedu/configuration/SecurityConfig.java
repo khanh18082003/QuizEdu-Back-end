@@ -49,7 +49,7 @@ public class SecurityConfig {
     "/quizzes",
     "/quizzes/**",
     "/quiz-sessions/**",
-          "/quiz-sessions"
+    "/quiz-sessions"
   };
 
   @Bean

@@ -9,8 +9,8 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserUpdateResponse {
-    String email;
-    String firstName;
-    String lastName;
-    String displayName;
+  String email;
+  String firstName;
+  String lastName;
+  String displayName;
 }
