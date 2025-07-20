@@ -21,9 +21,9 @@ public interface MatchingQuizMapper {
 
   @AfterMapping
   default void assignUUIDs(MatchingQuizRequest request, @MappingTarget MatchingQuiz quiz) {
-    if (quiz.getQuestions() != null) {
-      for (int i = 0; i < quiz.getQuestions().size(); i++) {
-        var pair = quiz.getQuestions().get(i);
+    if (quiz.getMatchPairs() != null) {
+      for (int i = 0; i < quiz.getMatchPairs().size(); i++) {
+        var pair = quiz.getMatchPairs().get(i);
         if (pair.getId() == null) {
           pair.setId(UUID.randomUUID());
         }

@@ -32,10 +32,8 @@ public class ClassRoom extends StringIdentityCollection {
   @Indexed(unique = true)
   String classCode;
 
-  @Builder.Default
-  List<String> studentIds = new ArrayList<>();
-  @Builder.Default
-  List<String> assignedQuizIds = new ArrayList<>();
+  @Builder.Default List<String> studentIds = new ArrayList<>();
+  @Builder.Default List<String> assignedQuizIds = new ArrayList<>();
   LocalDate createdAt;
   boolean isActive;
 }

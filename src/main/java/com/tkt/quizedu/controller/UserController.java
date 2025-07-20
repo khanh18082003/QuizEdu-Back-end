@@ -18,10 +18,7 @@ import com.tkt.quizedu.data.dto.request.ChangePasswordDTORequest;
 import com.tkt.quizedu.data.dto.request.StudentCreationDTORequest;
 import com.tkt.quizedu.data.dto.request.TeacherCreationDTORequest;
 import com.tkt.quizedu.data.dto.request.UserCreationDTORequest;
-import com.tkt.quizedu.data.dto.response.StudentProfileResponse;
-import com.tkt.quizedu.data.dto.response.SuccessApiResponse;
-import com.tkt.quizedu.data.dto.response.TeacherProfileResponse;
-import com.tkt.quizedu.data.dto.response.UserBaseResponse;
+import com.tkt.quizedu.data.dto.response.*;
 import com.tkt.quizedu.service.s3.IS3Service;
 import com.tkt.quizedu.service.user.IUserService;
 import com.tkt.quizedu.utils.GenerateVerificationCode;
@@ -164,6 +161,19 @@ public class UserController {
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .data(updatedProfile)
+        .build();
+  }
+
+  @GetMapping("/getAllClassRooms/{userId}")
+  SuccessApiResponse<PaginationResponse<ClassRoomResponse>> getAllClassRooms(
+      @PathVariable String userId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int pageSize) {
+    return SuccessApiResponse.<PaginationResponse<ClassRoomResponse>>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(userService.getAllClassRooms(userId, page, pageSize))
         .build();
   }
 }

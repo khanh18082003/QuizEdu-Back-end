@@ -1,7 +1,6 @@
 package com.tkt.quizedu.data.collection;
 
 import java.io.Serial;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,16 +32,16 @@ public class QuizSession extends StringIdentityCollection {
   String accessCode;
   LocalDateTime startTime;
   LocalDateTime endTime;
-  @Builder.Default
-  List<Participant> participants = new ArrayList<>();
+  @Builder.Default List<Participant> participants = new ArrayList<>();
 
   @Data
   public static class Participant {
     String userId;
     LocalDateTime joinedAt;
+
     public Participant(String userId, LocalDateTime now) {
-        this.userId = userId;
-        this.joinedAt = now;
+      this.userId = userId;
+      this.joinedAt = now;
     }
   }
 }
