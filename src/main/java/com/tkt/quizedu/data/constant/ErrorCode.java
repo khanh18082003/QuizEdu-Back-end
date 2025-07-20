@@ -21,6 +21,7 @@ public enum ErrorCode {
   MESSAGE_INVALID_ID("M102", HttpStatus.NOT_FOUND),
   MESSAGE_PASSWORD_NOT_MATCH("M103", HttpStatus.BAD_REQUEST),
   MESSAGE_NOT_EMPTY("M104", HttpStatus.BAD_REQUEST),
+  MESSAGE_INVALID_REQUEST("M105", HttpStatus.BAD_REQUEST),
   ;
 
   private final String code;

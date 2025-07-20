@@ -7,7 +7,6 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 import com.tkt.quizedu.data.constant.EducationLevel;
-import com.tkt.quizedu.data.constant.UserRole;
 
 public class LevelValidator implements ConstraintValidator<LevelValid, String> {
   private List<EducationLevel> validLevels;

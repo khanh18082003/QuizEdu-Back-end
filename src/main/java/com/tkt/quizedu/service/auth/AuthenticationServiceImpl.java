@@ -166,7 +166,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     if (header != null && header.startsWith("Bearer ")) {
       String token = header.substring(7); // Extract the token
       email = jwtService.extractUsername(TokenType.ACCESS_TOKEN, token);
-      removeAccessTokenFromRedis(email);
+      removeAccessTokenFromRedis(REFRESH_TOKEN_NAME);
     } else {
       log.warn("No Bearer token found in request header for logout.");
     }

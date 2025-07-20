@@ -2,7 +2,6 @@ package com.tkt.quizedu.data.dto.response;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;

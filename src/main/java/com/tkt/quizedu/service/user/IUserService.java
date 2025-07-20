@@ -2,15 +2,10 @@ package com.tkt.quizedu.service.user;
 
 import java.util.Optional;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.tkt.quizedu.data.collection.User;
-import com.tkt.quizedu.data.dto.request.ChangePasswordDTORequest;
-
-import com.tkt.quizedu.data.dto.request.StudentUpdateRequest;
-import com.tkt.quizedu.data.dto.request.TeacherUpdateRequest;
-
-import com.tkt.quizedu.data.dto.request.UserCreationDTORequest;
-import com.tkt.quizedu.data.dto.response.StudentUpdateResponse;
-import com.tkt.quizedu.data.dto.response.TeacherUpdateResponse;
+import com.tkt.quizedu.data.dto.request.*;
 import com.tkt.quizedu.data.dto.response.UserBaseResponse;
 
 public interface IUserService {
@@ -26,8 +21,5 @@ public interface IUserService {
 
   void changePassword(ChangePasswordDTORequest request);
 
-
-  StudentUpdateResponse updateStudent(StudentUpdateRequest request);
-
-  TeacherUpdateResponse updateTeacher(TeacherUpdateRequest request);
+  UserBaseResponse updateProfile(UserUpdateDTORequest req, MultipartFile avatar);
 }

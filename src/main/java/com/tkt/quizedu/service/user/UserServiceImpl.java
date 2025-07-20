@@ -2,34 +2,32 @@ package com.tkt.quizedu.service.user;
 
 import java.util.Optional;
 
-
-import com.tkt.quizedu.data.dto.request.*;
-import com.tkt.quizedu.data.dto.response.StudentUpdateResponse;
-import com.tkt.quizedu.data.dto.response.TeacherUpdateResponse;
-
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.tkt.quizedu.data.collection.CustomUserDetail;
 import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.constant.UserRole;
-
+import com.tkt.quizedu.data.dto.request.*;
 import com.tkt.quizedu.data.dto.request.ChangePasswordDTORequest;
 import com.tkt.quizedu.data.dto.request.StudentCreationDTORequest;
 import com.tkt.quizedu.data.dto.request.TeacherCreationDTORequest;
 import com.tkt.quizedu.data.dto.request.UserCreationDTORequest;
-
 import com.tkt.quizedu.data.dto.response.UserBaseResponse;
 import com.tkt.quizedu.data.mapper.UserMapper;
 import com.tkt.quizedu.data.repository.UserRepository;
 import com.tkt.quizedu.exception.QuizException;
+import com.tkt.quizedu.service.s3.IS3Service;
 import com.tkt.quizedu.utils.SecurityUtils;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -40,6 +38,11 @@ public class UserServiceImpl implements IUserService {
   UserRepository userRepository;
   UserMapper userMapper;
   PasswordEncoder passwordEncoder;
+  IS3Service s3Service;
+
+  @Value(("${aws.s3.base-url}"))
+  @NonFinal
+  String baseUrl;
 
   @Override
   @Transactional
@@ -135,26 +138,31 @@ public class UserServiceImpl implements IUserService {
   }
 
   @Override
-  public StudentUpdateResponse updateStudent(StudentUpdateRequest request) {
+  @Transactional
+  public UserBaseResponse updateProfile(UserUpdateDTORequest req, MultipartFile avatar) {
     CustomUserDetail userDetail = SecurityUtils.getUserDetail();
-    User user =
-        userRepository
-            .findById(userDetail.getUser().getId())
-            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
-    userMapper.toUserFromStudentUpdateRequest(request);
-    userRepository.save(user);
-    return userMapper.toStudentUpdateResponse(user);
-  }
+    if (userDetail == null) {
+      throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
+    }
+    User user = userDetail.getUser();
 
-  @Override
-  public TeacherUpdateResponse updateTeacher(TeacherUpdateRequest request) {
-    CustomUserDetail userDetail = SecurityUtils.getUserDetail();
-    User user =
-        userRepository
-            .findById(userDetail.getUser().getId())
-            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
-    userMapper.toUserFromTeacherUpdateRequest(request);
-    userRepository.save(user);
-    return userMapper.toTeacherUpdateResponse(user);
+    if (req instanceof StudentUpdateRequest studentUpdateRequest) {
+      userMapper.mergeUserFromStudentUpdateRequest(user, studentUpdateRequest);
+    } else if (req instanceof TeacherUpdateRequest teacherUpdateRequest) {
+      userMapper.mergeUserFromTeacherUpdateRequest(user, teacherUpdateRequest);
+    } else {
+      userMapper.mergeUserFromUserUpdateRequest(user, req);
+    }
+
+    if (avatar != null && !avatar.isEmpty()) {
+      String avatarUrl = s3Service.uploadFile(avatar);
+      if (user.getAvatar() != null) {
+        String fileName = user.getAvatar().replace(baseUrl, "");
+        s3Service.deleteFile(fileName);
+      }
+      user.setAvatar(avatarUrl);
+    }
+
+    return userMapper.toProfileResponse(userRepository.save(user));
   }
 }
