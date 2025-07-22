@@ -1,15 +1,14 @@
 package com.tkt.quizedu.data.repository;
 
-import java.util.List;
-
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.repository.Aggregation;
-
-import org.springframework.stereotype.Repository;
-
 import com.tkt.quizedu.data.base.BaseRepository;
 import com.tkt.quizedu.data.collection.ClassRoom;
 import com.tkt.quizedu.data.dto.response.ClassroomBaseResponse;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.repository.Aggregation;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ClassRoomRepository extends BaseRepository<ClassRoom, String> {
@@ -40,7 +39,6 @@ public interface ClassRoomRepository extends BaseRepository<ClassRoom, String> {
         "{ '$limit': ?#{#pageable.pageSize} }"
       })
   List<ClassroomBaseResponse> findClassroomResponsesByIds(List<String> ids, Pageable pageable);
-  
-  Optional<ClassRoom> findByClassCode(String classCode);
 
+  Optional<ClassRoom> findByClassCode(String classCode);
 }
