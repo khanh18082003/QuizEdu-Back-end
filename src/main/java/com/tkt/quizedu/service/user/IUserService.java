@@ -27,5 +27,4 @@ public interface IUserService {
   UserBaseResponse updateProfile(UserUpdateDTORequest req, MultipartFile avatar);
 
   PaginationResponse<ClassroomBaseResponse> getAllClassRooms(int page, int pageSize);
-
 }

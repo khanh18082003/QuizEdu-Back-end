@@ -1,6 +1,7 @@
 package com.tkt.quizedu.controller;
 
-import com.tkt.quizedu.data.dto.request.JoinClassRoomRequest;
+import com.tkt.quizedu.data.dto.response.ClassroomBaseResponse;
+import com.tkt.quizedu.data.dto.response.PaginationResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,6 +10,7 @@ import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.dto.request.AssignQuizToClassroomRequest;
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
+import com.tkt.quizedu.data.dto.request.JoinClassRoomRequest;
 import com.tkt.quizedu.data.dto.response.ClassRoomResponse;
 import com.tkt.quizedu.data.dto.response.SuccessApiResponse;
 import com.tkt.quizedu.service.classroom.IClassRoomService;

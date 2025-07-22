@@ -2,17 +2,16 @@ package com.tkt.quizedu.service.classroom;
 
 import java.util.List;
 
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import com.tkt.quizedu.data.collection.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tkt.quizedu.data.collection.ClassRoom;
 import com.tkt.quizedu.data.collection.CustomUserDetail;
 import com.tkt.quizedu.data.collection.Quiz;
+import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
 import com.tkt.quizedu.data.dto.response.ClassRoomResponse;
 import com.tkt.quizedu.data.dto.response.ClassroomBaseResponse;
@@ -74,14 +73,13 @@ public class ClassRoomServiceImpl implements IClassRoomService {
   }
 
   @Override
-
   public Page<ClassroomBaseResponse> getClassroomByIds(List<String> ids, Pageable pageable) {
     long total = classRoomRepository.countClassroomsByIds(ids).size();
 
     // Lấy data với pagination
     List<ClassroomBaseResponse> content =
         classRoomRepository.findClassroomResponsesByIds(ids, pageable);
-
+    log.info("Total classrooms found: {}", total);
     return new PageImpl<>(content, pageable, total);
   }
 
@@ -91,7 +89,8 @@ public class ClassRoomServiceImpl implements IClassRoomService {
     User user = userDetail.getUser();
     ClassRoom classRoom =
         classRoomRepository
-            .findByClassCode(classCode).orElseThrow(
+            .findByClassCode(classCode)
+            .orElseThrow(
                 () -> new RuntimeException("Classroom with code " + classCode + " not found"));
     List<String> studentIds = classRoom.getStudentIds();
     if (studentIds.contains(userDetail.getUser().getId())) {

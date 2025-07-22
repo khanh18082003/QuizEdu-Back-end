@@ -30,59 +30,58 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 public class User extends StringIdentityCollection {
-    @Serial
-    private static final long serialVersionUID = -5465733518693373245L;
+  @Serial private static final long serialVersionUID = -5465733518693373245L;
 
-    @Id
-    @Field(name = "_id", targetType = FieldType.OBJECT_ID)
-    String id;
+  @Id
+  @Field(name = "_id", targetType = FieldType.OBJECT_ID)
+  String id;
 
-    @Field(name = "email")
-    @Indexed(unique = true)
-    String email;
+  @Field(name = "email")
+  @Indexed(unique = true)
+  String email;
 
-    String password;
+  String password;
 
-    @Field(name = "first_name")
-    String firstName;
+  @Field(name = "first_name")
+  String firstName;
 
-    @Field(name = "last_name")
-    String lastName;
+  @Field(name = "last_name")
+  String lastName;
 
-    @Field(name = "display_name")
-    String displayName;
+  @Field(name = "display_name")
+  String displayName;
 
-    @Field(name = "avatar")
-    String avatar;
+  @Field(name = "avatar")
+  String avatar;
 
-    UserRole role;
+  UserRole role;
 
-    EducationLevel level;
+  EducationLevel level;
 
-    @Field(name = "school_name")
-    String schoolName;
+  @Field(name = "school_name")
+  String schoolName;
 
-    @Field(name = "is_active")
-    boolean isActive;
+  @Field(name = "is_active")
+  boolean isActive;
 
-    @Field(name = "class_ids")
-    @Builder.Default
-    List<String> classIds = new ArrayList<>();
+  @Field(name = "class_ids")
+  @Builder.Default
+  List<String> classIds = new ArrayList<>();
 
-    @Field(name = "subjects")
-    Set<String> subjects;
+  @Field(name = "subjects")
+  Set<String> subjects;
 
-    @Field(name = "qualifications")
-    Set<String> qualifications;
+  @Field(name = "qualifications")
+  Set<String> qualifications;
 
-    @Field(name = "experience")
-    String experience;
+  @Field(name = "experience")
+  String experience;
 
-    @Field(name = "created_at")
-    @CreatedDate
-    LocalDateTime createdAt;
+  @Field(name = "created_at")
+  @CreatedDate
+  LocalDateTime createdAt;
 
-    @Field(name = "updated_at")
-    @LastModifiedDate
-    LocalDateTime updatedAt;
+  @Field(name = "updated_at")
+  @LastModifiedDate
+  LocalDateTime updatedAt;
 }

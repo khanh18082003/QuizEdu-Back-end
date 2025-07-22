@@ -1,26 +1,28 @@
 package com.tkt.quizedu.controller;
 
-import com.tkt.quizedu.component.Translator;
-import com.tkt.quizedu.data.constant.EndpointConstant;
-import com.tkt.quizedu.data.constant.ErrorCode;
-import com.tkt.quizedu.data.dto.request.*;
-import com.tkt.quizedu.data.dto.response.*;
-import com.tkt.quizedu.service.s3.IS3Service;
-import com.tkt.quizedu.service.user.IUserService;
-import com.tkt.quizedu.utils.GenerateVerificationCode;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.concurrent.TimeUnit;
+
 import jakarta.validation.Valid;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.concurrent.TimeUnit;
+import com.tkt.quizedu.component.Translator;
+import com.tkt.quizedu.data.constant.EndpointConstant;
+import com.tkt.quizedu.data.constant.ErrorCode;
+import com.tkt.quizedu.data.dto.request.*;
+import com.tkt.quizedu.data.dto.response.*;
+import com.tkt.quizedu.service.user.IUserService;
+import com.tkt.quizedu.utils.GenerateVerificationCode;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping(EndpointConstant.ENDPOINT_USER)
