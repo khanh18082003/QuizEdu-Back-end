@@ -2,6 +2,9 @@ package com.tkt.quizedu.service.classroom;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,6 +12,7 @@ import com.tkt.quizedu.data.collection.ClassRoom;
 import com.tkt.quizedu.data.collection.Quiz;
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
 import com.tkt.quizedu.data.dto.response.ClassRoomResponse;
+import com.tkt.quizedu.data.dto.response.ClassroomBaseResponse;
 import com.tkt.quizedu.data.mapper.ClassRoomMapper;
 import com.tkt.quizedu.data.repository.ClassRoomRepository;
 import com.tkt.quizedu.data.repository.QuizRepository;
@@ -58,6 +62,17 @@ public class ClassRoomServiceImpl implements IClassRoomService {
             .findById(classRoomId)
             .orElseThrow(() -> new RuntimeException("Classroom not found"));
     classRoomRepository.delete(classRoom);
+  }
+
+  @Override
+  public Page<ClassroomBaseResponse> getClassroomByIds(List<String> ids, Pageable pageable) {
+    long total = classRoomRepository.countClassroomsByIds(ids).size();
+
+    // Lấy data với pagination
+    List<ClassroomBaseResponse> content =
+        classRoomRepository.findClassroomResponsesByIds(ids, pageable);
+
+    return new PageImpl<>(content, pageable, total);
   }
 
   @Override

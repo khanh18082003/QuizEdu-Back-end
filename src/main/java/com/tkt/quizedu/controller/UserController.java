@@ -1,33 +1,26 @@
 package com.tkt.quizedu.controller;
 
-import java.util.concurrent.TimeUnit;
-
+import com.tkt.quizedu.component.Translator;
+import com.tkt.quizedu.data.constant.EndpointConstant;
+import com.tkt.quizedu.data.constant.ErrorCode;
+import com.tkt.quizedu.data.dto.request.*;
+import com.tkt.quizedu.data.dto.response.*;
+import com.tkt.quizedu.service.s3.IS3Service;
+import com.tkt.quizedu.service.user.IUserService;
+import com.tkt.quizedu.utils.GenerateVerificationCode;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tkt.quizedu.component.Translator;
-import com.tkt.quizedu.data.constant.EndpointConstant;
-import com.tkt.quizedu.data.constant.ErrorCode;
-import com.tkt.quizedu.data.dto.request.*;
-import com.tkt.quizedu.data.dto.request.ChangePasswordDTORequest;
-import com.tkt.quizedu.data.dto.request.StudentCreationDTORequest;
-import com.tkt.quizedu.data.dto.request.TeacherCreationDTORequest;
-import com.tkt.quizedu.data.dto.request.UserCreationDTORequest;
-import com.tkt.quizedu.data.dto.response.*;
-import com.tkt.quizedu.service.s3.IS3Service;
-import com.tkt.quizedu.service.user.IUserService;
-import com.tkt.quizedu.utils.GenerateVerificationCode;
-
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping(EndpointConstant.ENDPOINT_USER)
@@ -38,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 public class UserController {
 
   IUserService userService;
-  IS3Service s3Service;
   KafkaTemplate<String, String> kafkaTemplate;
   RedisTemplate<String, Object> redisTemplate;
 
@@ -164,16 +156,14 @@ public class UserController {
         .build();
   }
 
-  @GetMapping("/getAllClassRooms/{userId}")
-  SuccessApiResponse<PaginationResponse<ClassRoomResponse>> getAllClassRooms(
-      @PathVariable String userId,
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "10") int pageSize) {
-    return SuccessApiResponse.<PaginationResponse<ClassRoomResponse>>builder()
+  @GetMapping("/all")
+  SuccessApiResponse<PaginationResponse<ClassroomBaseResponse>> getAllClassRooms(
+      @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "9") int pageSize) {
+    return SuccessApiResponse.<PaginationResponse<ClassroomBaseResponse>>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
-        .data(userService.getAllClassRooms(userId, page, pageSize))
+        .data(userService.getAllClassRooms(page, pageSize))
         .build();
   }
 }
