@@ -1,7 +1,7 @@
 package com.tkt.quizedu.data.dto.response;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -21,5 +21,5 @@ public class ClassroomBaseResponse implements Serializable {
   String description;
   TeacherProfileResponse teacher;
   boolean isActive;
-  LocalDate createdAt;
+  LocalDateTime createdAt;
 }

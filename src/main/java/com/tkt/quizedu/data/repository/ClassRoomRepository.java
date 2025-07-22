@@ -20,7 +20,8 @@ public interface ClassRoomRepository extends BaseRepository<ClassRoom, String> {
   @Aggregation(
       pipeline = {
         "{ '$match': { '_id': { '$in': ?0 } } }",
-        "{ '$lookup': { 'from': 'users', 'localField': 'teacherId', 'foreignField': '_id', 'as': 'teacher' } }",
+        "{ '$addFields': { 'teacherObjectId': { '$toObjectId': '$teacherId' } } }",
+        "{ '$lookup': { 'from': 'users', 'localField': 'teacherObjectId', 'foreignField': '_id', 'as': 'teacher' } }",
         "{ '$unwind': { 'path': '$teacher', 'preserveNullAndEmptyArrays': true } }",
         "{ '$project': { "
             + "'id': '$_id', "
@@ -28,13 +29,21 @@ public interface ClassRoomRepository extends BaseRepository<ClassRoom, String> {
             + "'description': 1, "
             + "'teacher': { "
             + "'id': '$teacher._id', "
-            + "'firstName': '$teacher.firstName', "
-            + "'lastName': '$teacher.lastName', "
             + "'email': '$teacher.email', "
+            + "'firstName': '$teacher.first_name', "
+            + "'lastName': '$teacher.last_name', "
+            + "'displayName': '$teacher.display_name', "
             + "'avatar': '$teacher.avatar', "
+            + "'isActive': '$teacher.is_active', "
+            + "'role': '$teacher.role', "
+            + "'createdAt': '$teacher.created_at', "
+            + "'updatedAt': '$teacher.updated_at', "
+            + "'subjects': '$teacher.subjects', "
+            + "'experience': '$teacher.experience', "
+            + "'schoolName': '$teacher.school_name' "
             + "}, "
             + "'isActive': 1, "
-            + "'createdAt': 1 "
+            + "'createdAt': '$created_at' "
             + "} }",
         "{ '$skip': ?#{#pageable.offset} }",
         "{ '$limit': ?#{#pageable.pageSize} }"
@@ -42,4 +51,6 @@ public interface ClassRoomRepository extends BaseRepository<ClassRoom, String> {
   List<ClassroomBaseResponse> findClassroomResponsesByIds(List<String> ids, Pageable pageable);
 
   Optional<ClassRoom> findByClassCode(String classCode);
+
+  List<ClassRoom> findByTeacherId(String teacherId);
 }

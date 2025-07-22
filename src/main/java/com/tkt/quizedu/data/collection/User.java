@@ -12,7 +12,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import com.tkt.quizedu.data.base.StringIdentityCollection;
 import com.tkt.quizedu.data.constant.EducationLevel;
@@ -33,7 +32,7 @@ public class User extends StringIdentityCollection {
   @Serial private static final long serialVersionUID = -5465733518693373245L;
 
   @Id
-  @Field(name = "_id", targetType = FieldType.OBJECT_ID)
+  @Field(name = "_id")
   String id;
 
   @Field(name = "email")
