@@ -1,31 +1,28 @@
 package com.tkt.quizedu.service.user;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tkt.quizedu.data.collection.ClassRoom;
 import com.tkt.quizedu.data.collection.CustomUserDetail;
 import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.constant.UserRole;
 import com.tkt.quizedu.data.dto.request.*;
-import com.tkt.quizedu.data.dto.request.ChangePasswordDTORequest;
-import com.tkt.quizedu.data.dto.request.StudentCreationDTORequest;
-import com.tkt.quizedu.data.dto.request.TeacherCreationDTORequest;
-import com.tkt.quizedu.data.dto.request.UserCreationDTORequest;
-import com.tkt.quizedu.data.dto.response.*;
+import com.tkt.quizedu.data.dto.response.ClassroomBaseResponse;
+import com.tkt.quizedu.data.dto.response.PaginationResponse;
 import com.tkt.quizedu.data.dto.response.UserBaseResponse;
 import com.tkt.quizedu.data.mapper.UserMapper;
-import com.tkt.quizedu.data.repository.ClassRoomRepository;
 import com.tkt.quizedu.data.repository.UserRepository;
 import com.tkt.quizedu.exception.QuizException;
+import com.tkt.quizedu.service.classroom.IClassRoomService;
 import com.tkt.quizedu.service.s3.IS3Service;
 import com.tkt.quizedu.utils.SecurityUtils;
 
@@ -44,12 +41,11 @@ public class UserServiceImpl implements IUserService {
   UserMapper userMapper;
   PasswordEncoder passwordEncoder;
   IS3Service s3Service;
+  IClassRoomService classRoomService;
 
   @Value(("${aws.s3.base-url}"))
   @NonFinal
   String baseUrl;
-
-  ClassRoomRepository classRoomRepository;
 
   @Override
   @Transactional
@@ -174,34 +170,22 @@ public class UserServiceImpl implements IUserService {
   }
 
   @Override
-  public PaginationResponse<ClassRoomResponse> getAllClassRooms(int page, int pageSize) {
+  public PaginationResponse<ClassroomBaseResponse> getAllClassRooms(int page, int pageSize) {
     CustomUserDetail userDetail = SecurityUtils.getUserDetail();
-    User user =
-        userRepository
-            .findById(userDetail.getUser().getId())
-            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
-    List<ClassRoomResponse> classRoomResponses = new ArrayList<>();
-    for (String classRoomId : user.getClassIds()) {
-      ClassRoom classRoom =
-          classRoomRepository
-              .findById(classRoomId)
-              .orElseThrow(() -> new RuntimeException("Classroom not found"));
-      classRoomResponses.add(
-          ClassRoomResponse.builder()
-              .id(classRoom.getId())
-              .name(classRoom.getName())
-              .description(classRoom.getDescription())
-              .teacherId(classRoom.getTeacherId())
-              .studentIds(classRoom.getStudentIds())
-              .assignedQuizIds(classRoom.getAssignedQuizIds())
-              .build());
+    if (userDetail == null) {
+      throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
     }
+    User user = userDetail.getUser();
+    Pageable pageable = PageRequest.of(page - 1, pageSize);
 
-    return PaginationResponse.<ClassRoomResponse>builder()
-        .data(classRoomResponses)
+    Page<ClassroomBaseResponse> classRooms =
+        classRoomService.getClassroomByIds(user.getClassIds(), pageable);
+
+    return PaginationResponse.<ClassroomBaseResponse>builder()
+        .data(classRooms.getContent())
         .page(page)
         .pageSize(pageSize)
-        .total(classRoomResponses.size())
+        .total(classRooms.getTotalElements())
         .build();
   }
 }
