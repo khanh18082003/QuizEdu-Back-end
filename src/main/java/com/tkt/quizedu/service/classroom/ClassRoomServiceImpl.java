@@ -2,13 +2,16 @@ package com.tkt.quizedu.service.classroom;
 
 import java.util.List;
 
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import com.tkt.quizedu.data.collection.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tkt.quizedu.data.collection.ClassRoom;
+import com.tkt.quizedu.data.collection.CustomUserDetail;
 import com.tkt.quizedu.data.collection.Quiz;
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
 import com.tkt.quizedu.data.dto.response.ClassRoomResponse;
@@ -16,6 +19,9 @@ import com.tkt.quizedu.data.dto.response.ClassroomBaseResponse;
 import com.tkt.quizedu.data.mapper.ClassRoomMapper;
 import com.tkt.quizedu.data.repository.ClassRoomRepository;
 import com.tkt.quizedu.data.repository.QuizRepository;
+import com.tkt.quizedu.data.repository.UserRepository;
+import com.tkt.quizedu.utils.GenerateVerificationCode;
+import com.tkt.quizedu.utils.SecurityUtils;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -30,13 +36,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j(topic = "CLASSROOM-SERVICE")
 public class ClassRoomServiceImpl implements IClassRoomService {
   ClassRoomRepository classRoomRepository;
+  UserRepository userRepository;
   ClassRoomMapper classRoomMapper;
   QuizRepository quizRepository;
 
   @Override
   public ClassRoomResponse createClassRoom(ClassRoomRequest classRoomRequest) {
+    CustomUserDetail userDetail = SecurityUtils.getUserDetail();
     ClassRoom classRoom = classRoomMapper.toClassRoom(classRoomRequest);
-    classRoom.setCreatedAt(java.time.LocalDate.now());
+    classRoom.setTeacherId(userDetail.getUser().getId());
+    classRoom.setClassCode(GenerateVerificationCode.generateCode());
     return classRoomMapper.toClassRoomResponse(classRoomRepository.save(classRoom));
   }
 
@@ -65,6 +74,7 @@ public class ClassRoomServiceImpl implements IClassRoomService {
   }
 
   @Override
+
   public Page<ClassroomBaseResponse> getClassroomByIds(List<String> ids, Pageable pageable) {
     long total = classRoomRepository.countClassroomsByIds(ids).size();
 
@@ -75,18 +85,31 @@ public class ClassRoomServiceImpl implements IClassRoomService {
     return new PageImpl<>(content, pageable, total);
   }
 
-  @Override
-  public Boolean joinClassRoom(String classRoomId, String studentId) {
+
+  public Boolean joinClassRoom(String classCode) {
+    CustomUserDetail userDetail = SecurityUtils.getUserDetail();
+    User user = userDetail.getUser();
     ClassRoom classRoom =
         classRoomRepository
-            .findById(classRoomId)
-            .orElseThrow(() -> new RuntimeException("Classroom not found"));
+            .findByClassCode(classCode).orElseThrow(
+                () -> new RuntimeException("Classroom with code " + classCode + " not found"));
     List<String> studentIds = classRoom.getStudentIds();
-    if (studentIds.contains(studentId)) {
+    if (studentIds.contains(userDetail.getUser().getId())) {
       return false; // Student already in the classroom
     }
-    studentIds.add(studentId);
+    studentIds.add(userDetail.getUser().getId());
     classRoom.setStudentIds(studentIds);
+
+    // Add the classroom ID to the user's classIds
+    List<String> classIds = userDetail.getUser().getClassIds();
+    if (!classIds.contains(classRoom.getId())) {
+      System.out.println("classRoom.getId() = " + classRoom.getId());
+      System.out.println("classIds before = " + classIds);
+      classIds.add(classRoom.getId());
+      user.setClassIds(classIds);
+      System.out.println("classIds after = " + user.getClassIds());
+      userRepository.save(user);
+    }
     classRoomRepository.save(classRoom);
     return true; // Successfully added student to the classroom
   }

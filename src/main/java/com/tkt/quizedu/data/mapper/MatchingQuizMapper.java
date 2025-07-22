@@ -41,5 +41,6 @@ public interface MatchingQuizMapper {
 
   List<MatchingQuiz.MatchPair> toMatchPairList(List<MatchingQuestionRequest> requests);
 
+  @Mapping(target = "questions", source = "matchPairs")
   MatchingQuizResponse toMatchingQuizResponse(MatchingQuiz quiz);
 }

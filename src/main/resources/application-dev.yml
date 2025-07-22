@@ -47,7 +47,7 @@ springdoc:
 # jwt secret key
 jwt:
   issuer: quiz-edu
-  expirationTime: 15
+  expirationTime: 300
   expirationDay: 30
   accessToken: ${ACCESS_TOKEN_SECRET}
   refreshToken: ${REFRESH_TOKEN_SECRET}

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.Aggregation;
+
 import org.springframework.stereotype.Repository;
 
 import com.tkt.quizedu.data.base.BaseRepository;
@@ -39,4 +40,7 @@ public interface ClassRoomRepository extends BaseRepository<ClassRoom, String> {
         "{ '$limit': ?#{#pageable.pageSize} }"
       })
   List<ClassroomBaseResponse> findClassroomResponsesByIds(List<String> ids, Pageable pageable);
+  
+  Optional<ClassRoom> findByClassCode(String classCode);
+
 }

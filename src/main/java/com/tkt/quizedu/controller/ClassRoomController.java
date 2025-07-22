@@ -1,13 +1,14 @@
 package com.tkt.quizedu.controller;
 
+import com.tkt.quizedu.data.dto.request.JoinClassRoomRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import com.tkt.quizedu.component.Translator;
 import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
+import com.tkt.quizedu.data.dto.request.AssignQuizToClassroomRequest;
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
-import com.tkt.quizedu.data.dto.request.JoinClassRoomRequest;
 import com.tkt.quizedu.data.dto.response.ClassRoomResponse;
 import com.tkt.quizedu.data.dto.response.SuccessApiResponse;
 import com.tkt.quizedu.service.classroom.IClassRoomService;
@@ -64,11 +65,8 @@ public class ClassRoomController {
   }
 
   @PostMapping("/joinClassRoom")
-  public SuccessApiResponse<Boolean> joinClassRoom(
-      @RequestBody JoinClassRoomRequest joinClassRoomRequest) {
-    Boolean response =
-        classRoomService.joinClassRoom(
-            joinClassRoomRequest.classRoomId(), joinClassRoomRequest.studentId());
+  public SuccessApiResponse<Boolean> joinClassRoom(@RequestBody JoinClassRoomRequest classCode) {
+    Boolean response = classRoomService.joinClassRoom(classCode.classCode());
     return SuccessApiResponse.<Boolean>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
@@ -79,10 +77,10 @@ public class ClassRoomController {
 
   @PostMapping("/assignQuizToClassroom")
   public SuccessApiResponse<Boolean> assignQuizToClassroom(
-      @RequestBody JoinClassRoomRequest joinClassRoomRequest) {
+      @RequestBody AssignQuizToClassroomRequest assignQuizToClassroomRequest) {
     Boolean response =
         classRoomService.assignQuizToClassroom(
-            joinClassRoomRequest.classRoomId(), joinClassRoomRequest.studentId());
+            assignQuizToClassroomRequest.classRoomId(), assignQuizToClassroomRequest.quizId());
     return SuccessApiResponse.<Boolean>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
