@@ -81,6 +81,9 @@ public class UserServiceImpl implements IUserService {
   }
 
   private void validatePasswordMatch(UserCreationDTORequest req) {
+    if (req.getRole().equals(UserRole.ADMIN.name())) {
+      return;
+    }
     if (!req.getPassword().equals(req.getConfirmPassword())) {
       throw new QuizException(ErrorCode.MESSAGE_PASSWORD_NOT_MATCH);
     }
