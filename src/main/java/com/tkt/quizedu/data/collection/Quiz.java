@@ -1,13 +1,15 @@
 package com.tkt.quizedu.data.collection;
 
 import java.io.Serial;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import com.tkt.quizedu.data.base.StringIdentityCollection;
 
@@ -31,7 +33,14 @@ public class Quiz extends StringIdentityCollection {
   String teacherId;
   String subjectId;
   @Builder.Default List<String> classIds = new ArrayList<>();
-  @CreatedDate LocalDate createdAt;
-  LocalDate updatedAt;
+
+  @Field(name = "created_at")
+  @CreatedDate
+  LocalDateTime createdAt;
+
+  @Field(name = "updated_at")
+  @LastModifiedDate
+  LocalDateTime updatedAt;
+
   boolean isActive = true;
 }

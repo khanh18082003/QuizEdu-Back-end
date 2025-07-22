@@ -463,7 +463,7 @@ public class QuizServiceImpl implements IQuizService {
         multipleChoiceQuiz =
             multipleChoiceQuizMapper.toMultipleChoiceQuiz(multipleChoiceQuizRequest);
         multipleChoiceQuiz.setQuizId(quizId);
-        multipleChoiceQuiz = multipleChoiceQuizRepository.save(multipleChoiceQuiz);
+        multipleChoiceQuizRepository.save(multipleChoiceQuiz);
       }
 
       case MATCHING -> {
@@ -478,7 +478,7 @@ public class QuizServiceImpl implements IQuizService {
         matchingQuiz.setQuizId(quizId);
         matchingQuiz.setMatchPairs(
             matchingQuizMapper.toMatchPairList(matchingQuizRequest.questions()));
-        matchingQuiz = matchingQuizRepository.save(matchingQuiz);
+        matchingQuizRepository.save(matchingQuiz);
       }
 
       default -> throw new IllegalArgumentException("Unsupported quiz type: " + request.type());
