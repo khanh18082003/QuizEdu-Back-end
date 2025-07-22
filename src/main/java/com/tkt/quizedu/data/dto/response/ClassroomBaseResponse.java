@@ -19,6 +19,7 @@ public class ClassroomBaseResponse implements Serializable {
   String id;
   String name;
   String description;
+  String classCode;
   TeacherProfileResponse teacher;
   boolean isActive;
   LocalDateTime createdAt;

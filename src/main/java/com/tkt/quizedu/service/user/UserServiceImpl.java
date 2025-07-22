@@ -3,8 +3,6 @@ package com.tkt.quizedu.service.user;
 import java.util.List;
 import java.util.Optional;
 
-import com.tkt.quizedu.data.collection.ClassRoom;
-import com.tkt.quizedu.data.repository.ClassRoomRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tkt.quizedu.data.collection.ClassRoom;
 import com.tkt.quizedu.data.collection.CustomUserDetail;
 import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.constant.ErrorCode;
@@ -23,6 +22,7 @@ import com.tkt.quizedu.data.dto.response.ClassroomBaseResponse;
 import com.tkt.quizedu.data.dto.response.PaginationResponse;
 import com.tkt.quizedu.data.dto.response.UserBaseResponse;
 import com.tkt.quizedu.data.mapper.UserMapper;
+import com.tkt.quizedu.data.repository.ClassRoomRepository;
 import com.tkt.quizedu.data.repository.UserRepository;
 import com.tkt.quizedu.exception.QuizException;
 import com.tkt.quizedu.service.classroom.IClassRoomService;
@@ -81,6 +81,9 @@ public class UserServiceImpl implements IUserService {
   }
 
   private void validatePasswordMatch(UserCreationDTORequest req) {
+    if (req.getRole().equals(UserRole.ADMIN.name())) {
+      return;
+    }
     if (!req.getPassword().equals(req.getConfirmPassword())) {
       throw new QuizException(ErrorCode.MESSAGE_PASSWORD_NOT_MATCH);
     }
@@ -184,11 +187,11 @@ public class UserServiceImpl implements IUserService {
 
     List<String> classIds = user.getClassIds();
     if (user.getRole().equals(UserRole.TEACHER)) {
-      classIds = classRoomRepository.findByTeacherId(user.getId()).stream().map(ClassRoom::getId).toList();
+      classIds =
+          classRoomRepository.findByTeacherId(user.getId()).stream().map(ClassRoom::getId).toList();
     }
 
-    Page<ClassroomBaseResponse> classRooms =
-        classRoomService.getClassroomByIds(classIds, pageable);
+    Page<ClassroomBaseResponse> classRooms = classRoomService.getClassroomByIds(classIds, pageable);
 
     return PaginationResponse.<ClassroomBaseResponse>builder()
         .data(classRooms.getContent())

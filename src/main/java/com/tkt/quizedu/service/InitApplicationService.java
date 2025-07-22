@@ -44,8 +44,7 @@ public class InitApplicationService {
       log.info("Creating default admin user with email: {}", email);
       // Create and save the default admin user
       UserCreationDTORequest admin =
-          new UserCreationDTORequest(
-              email, passwordEncoder.encode(password), displayName, UserRole.ADMIN.name());
+          new UserCreationDTORequest(email, password, displayName, UserRole.ADMIN.name());
 
       // Set other required fields for the admin user
       userService.save(admin);

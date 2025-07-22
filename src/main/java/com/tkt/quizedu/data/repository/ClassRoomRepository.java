@@ -27,6 +27,7 @@ public interface ClassRoomRepository extends BaseRepository<ClassRoom, String> {
             + "'id': '$_id', "
             + "'name': 1, "
             + "'description': 1, "
+            + "'classCode': 1, "
             + "'teacher': { "
             + "'id': '$teacher._id', "
             + "'email': '$teacher.email', "
