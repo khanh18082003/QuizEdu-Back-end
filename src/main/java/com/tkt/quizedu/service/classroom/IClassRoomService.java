@@ -6,7 +6,7 @@ import com.tkt.quizedu.data.dto.response.ClassRoomResponse;
 public interface IClassRoomService {
   ClassRoomResponse createClassRoom(ClassRoomRequest classRoomRequest);
 
-  Boolean joinClassRoom(String classRoomId, String studentId);
+  Boolean joinClassRoom(String classRoomId);
 
   Boolean assignQuizToClassroom(String classRoomId, String quizId);
 

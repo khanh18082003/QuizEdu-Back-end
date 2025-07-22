@@ -173,7 +173,7 @@ public class UserController {
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
-        .data(userService.getAllClassRooms(userId, page, pageSize))
+        .data(userService.getAllClassRooms(page, pageSize))
         .build();
   }
 }

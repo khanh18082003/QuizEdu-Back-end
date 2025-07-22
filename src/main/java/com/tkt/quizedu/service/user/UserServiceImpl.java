@@ -174,11 +174,11 @@ public class UserServiceImpl implements IUserService {
   }
 
   @Override
-  public PaginationResponse<ClassRoomResponse> getAllClassRooms(
-      String userId, int page, int pageSize) {
+  public PaginationResponse<ClassRoomResponse> getAllClassRooms(int page, int pageSize) {
+    CustomUserDetail userDetail = SecurityUtils.getUserDetail();
     User user =
         userRepository
-            .findById(userId)
+            .findById(userDetail.getUser().getId())
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     List<ClassRoomResponse> classRoomResponses = new ArrayList<>();
     for (String classRoomId : user.getClassIds()) {
