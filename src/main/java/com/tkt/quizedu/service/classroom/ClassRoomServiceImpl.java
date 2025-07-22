@@ -80,9 +80,12 @@ public class ClassRoomServiceImpl implements IClassRoomService {
     List<ClassroomBaseResponse> content =
         classRoomRepository.findClassroomResponsesByIds(ids, pageable);
     log.info("Total classrooms found: {}", total);
+    content.forEach(
+        classroomBaseResponse ->
+            log.info("Classroom: {}", classroomBaseResponse.getTeacher().getId()));
+
     return new PageImpl<>(content, pageable, total);
   }
-
 
   public Boolean joinClassRoom(String classCode) {
     CustomUserDetail userDetail = SecurityUtils.getUserDetail();

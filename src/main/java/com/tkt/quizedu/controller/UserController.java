@@ -158,7 +158,7 @@ public class UserController {
         .build();
   }
 
-  @GetMapping("/all")
+  @GetMapping("/classrooms/all")
   SuccessApiResponse<PaginationResponse<ClassroomBaseResponse>> getAllClassRooms(
       @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "9") int pageSize) {
     return SuccessApiResponse.<PaginationResponse<ClassroomBaseResponse>>builder()

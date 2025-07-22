@@ -1,7 +1,5 @@
 package com.tkt.quizedu.controller;
 
-import com.tkt.quizedu.data.dto.response.ClassroomBaseResponse;
-import com.tkt.quizedu.data.dto.response.PaginationResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,7 +1,10 @@
 package com.tkt.quizedu.service.user;
 
+import java.util.List;
 import java.util.Optional;
 
+import com.tkt.quizedu.data.collection.ClassRoom;
+import com.tkt.quizedu.data.repository.ClassRoomRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -42,6 +45,7 @@ public class UserServiceImpl implements IUserService {
   PasswordEncoder passwordEncoder;
   IS3Service s3Service;
   IClassRoomService classRoomService;
+  ClassRoomRepository classRoomRepository;
 
   @Value(("${aws.s3.base-url}"))
   @NonFinal
@@ -178,13 +182,19 @@ public class UserServiceImpl implements IUserService {
     User user = userDetail.getUser();
     Pageable pageable = PageRequest.of(page - 1, pageSize);
 
+    List<String> classIds = user.getClassIds();
+    if (user.getRole().equals(UserRole.TEACHER)) {
+      classIds = classRoomRepository.findByTeacherId(user.getId()).stream().map(ClassRoom::getId).toList();
+    }
+
     Page<ClassroomBaseResponse> classRooms =
-        classRoomService.getClassroomByIds(user.getClassIds(), pageable);
+        classRoomService.getClassroomByIds(classIds, pageable);
 
     return PaginationResponse.<ClassroomBaseResponse>builder()
         .data(classRooms.getContent())
         .page(page)
         .pageSize(pageSize)
+        .pages(classRooms.getTotalPages())
         .total(classRooms.getTotalElements())
         .build();
   }

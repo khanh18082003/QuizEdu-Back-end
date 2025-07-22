@@ -1,6 +1,6 @@
 package com.tkt.quizedu.data.dto.response;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -23,6 +23,6 @@ public class ClassRoomResponse implements java.io.Serializable {
   String classCode;
   List<String> studentIds;
   List<String> assignedQuizIds;
-  LocalDate createdAt;
+  LocalDateTime createdAt;
   boolean isActive;
 }
