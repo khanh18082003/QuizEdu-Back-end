@@ -168,4 +168,14 @@ public class UserController {
         .data(userService.getAllClassRooms(page, pageSize))
         .build();
   }
+
+  @DeleteMapping("/classrooms/{classRoomId}")
+  SuccessApiResponse<Void> leaveClassRoom(@PathVariable String classRoomId) {
+    userService.leaveClassRoom(classRoomId);
+    return SuccessApiResponse.<Void>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
+  }
 }

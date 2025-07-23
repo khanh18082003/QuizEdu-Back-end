@@ -201,4 +201,43 @@ public class UserServiceImpl implements IUserService {
         .total(classRooms.getTotalElements())
         .build();
   }
+
+  @Override
+  @Transactional
+  public void leaveClassRoom(String classRoomId) {
+    // Get current user
+    CustomUserDetail userDetail = SecurityUtils.getUserDetail();
+    if (userDetail == null) {
+      throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
+    }
+    User user = userDetail.getUser();
+    String userId = user.getId();
+
+    // Verify the classroom exists
+    boolean classroomExists = classRoomRepository.existsById(classRoomId);
+    if (!classroomExists) {
+      throw new QuizException(ErrorCode.MESSAGE_CLASSROOM_NOT_FOUND);
+    }
+
+    // Update user document - remove classroom from user's list
+    List<String> classIds = user.getClassIds();
+    if (!classIds.contains(classRoomId)) {
+      throw new QuizException(ErrorCode.MESSAGE_USER_NOT_IN_CLASSROOM);
+    }
+
+    try {
+      // Use atomic updates for both collections
+      classIds.remove(classRoomId);
+      user.setClassIds(classIds);
+      userRepository.save(user);
+
+      // Update classroom document - remove user from classroom's student list
+      classRoomRepository.removeStudentFromClassroom(classRoomId, userId);
+
+      log.info("User {} successfully left classroom {}", userId, classRoomId);
+    } catch (Exception e) {
+      log.error("Failed to process classroom leave request: {}", e.getMessage());
+      throw new QuizException(ErrorCode.MESSAGE_OPERATION_FAILED);
+    }
+  }
 }

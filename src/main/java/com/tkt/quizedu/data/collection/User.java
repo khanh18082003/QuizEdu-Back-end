@@ -61,8 +61,9 @@ public class User extends StringIdentityCollection {
 
   Set<String> subjects;
 
-  @Field(name = "experience")
   String experience;
+
+  String qualification;
 
   @CreatedDate LocalDateTime createdAt;
 
