@@ -6,7 +6,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -94,12 +93,7 @@ public class QuizServiceImpl implements IQuizService {
     Pageable pageable = PageRequest.of(page - 1, pageSize);
 
     // Lấy danh sách theo phân trang
-    List<Quiz> quizzes = quizRepository.findAllByTeacherId(teacherId, pageable);
-
-    // Lấy tổng số bản ghi
-    long total = quizRepository.countByTeacherId(teacherId);
-
-    Page<Quiz> quizzesPage = new PageImpl<>(quizzes, pageable, total);
+    Page<Quiz> quizzesPage = quizRepository.findAllByTeacherId(teacherId, pageable);
 
     List<QuizResponse> quizResponse =
         quizzesPage.getContent().stream()
