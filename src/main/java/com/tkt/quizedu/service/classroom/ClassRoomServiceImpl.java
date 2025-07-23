@@ -13,9 +13,9 @@ import com.tkt.quizedu.data.collection.CustomUserDetail;
 import com.tkt.quizedu.data.collection.Quiz;
 import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
-import com.tkt.quizedu.data.dto.response.ClassRoomResponse;
-import com.tkt.quizedu.data.dto.response.ClassroomBaseResponse;
+import com.tkt.quizedu.data.dto.response.*;
 import com.tkt.quizedu.data.mapper.ClassRoomMapper;
+import com.tkt.quizedu.data.mapper.UserMapper;
 import com.tkt.quizedu.data.repository.ClassRoomRepository;
 import com.tkt.quizedu.data.repository.QuizRepository;
 import com.tkt.quizedu.data.repository.UserRepository;
@@ -38,6 +38,7 @@ public class ClassRoomServiceImpl implements IClassRoomService {
   UserRepository userRepository;
   ClassRoomMapper classRoomMapper;
   QuizRepository quizRepository;
+  UserMapper userMapper;
 
   @Override
   public ClassRoomResponse createClassRoom(ClassRoomRequest classRoomRequest) {
@@ -85,6 +86,40 @@ public class ClassRoomServiceImpl implements IClassRoomService {
             log.info("Classroom: {}", classroomBaseResponse.getTeacher().getId()));
 
     return new PageImpl<>(content, pageable, total);
+  }
+
+  @Override
+  public ClassroomDetailResponse getClassroomDetailById(String classRoomId) {
+    ClassRoom classRoom =
+        classRoomRepository
+            .findById(classRoomId)
+            .orElseThrow(() -> new RuntimeException("Classroom not found"));
+    List<String> studentIds = classRoom.getStudentIds();
+    List<User> students = userRepository.findAllById(studentIds);
+    List<UserBaseResponse> studentProfiles =
+        students.stream().map(userMapper::toUserBaseResponse).toList();
+    List<String> assignedQuizIds = classRoom.getAssignedQuizIds();
+    List<Quiz> quizzes = quizRepository.findAllById(assignedQuizIds);
+    List<QuizBaseResponse> quizResponses =
+        quizzes.stream()
+            .map(
+                quiz ->
+                    QuizBaseResponse.builder()
+                        .id(quiz.getId())
+                        .name(quiz.getName())
+                        .description(quiz.getDescription())
+                        .isActive(quiz.isActive())
+                        .build())
+            .toList();
+    return ClassroomDetailResponse.builder()
+        .id(classRoom.getId())
+        .name(classRoom.getName())
+        .description(classRoom.getDescription())
+        .classCode(classRoom.getClassCode())
+        .createdAt(classRoom.getCreatedAt())
+        .quiz(quizResponses)
+        .students(studentProfiles)
+        .build();
   }
 
   public Boolean joinClassRoom(String classCode) {

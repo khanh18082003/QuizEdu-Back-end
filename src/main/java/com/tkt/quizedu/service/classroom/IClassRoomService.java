@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
 import com.tkt.quizedu.data.dto.response.ClassRoomResponse;
 import com.tkt.quizedu.data.dto.response.ClassroomBaseResponse;
+import com.tkt.quizedu.data.dto.response.ClassroomDetailResponse;
 
 public interface IClassRoomService {
   ClassRoomResponse createClassRoom(ClassRoomRequest classRoomRequest);
@@ -21,4 +22,6 @@ public interface IClassRoomService {
   void deleteClassRoom(String classRoomId);
 
   Page<ClassroomBaseResponse> getClassroomByIds(List<String> ids, Pageable pageable);
+
+  ClassroomDetailResponse getClassroomDetailById(String classRoomId);
 }

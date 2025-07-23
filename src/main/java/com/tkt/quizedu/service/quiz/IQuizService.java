@@ -5,12 +5,13 @@ import java.util.UUID;
 
 import com.tkt.quizedu.data.collection.MatchingQuiz;
 import com.tkt.quizedu.data.dto.request.*;
+import com.tkt.quizedu.data.dto.response.PaginationResponse;
 import com.tkt.quizedu.data.dto.response.QuizResponse;
 
 public interface IQuizService {
   QuizResponse save(QuizCreationRequest request);
 
-  List<QuizResponse> getAll();
+  PaginationResponse<QuizResponse> getAll(int page, int pageSize);
 
   QuizResponse getById(String id);
 
