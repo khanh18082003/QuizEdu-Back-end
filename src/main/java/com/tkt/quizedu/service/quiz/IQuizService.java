@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.tkt.quizedu.data.collection.MatchingQuiz;
+import com.tkt.quizedu.data.collection.MultipleChoiceQuiz;
 import com.tkt.quizedu.data.dto.request.*;
 import com.tkt.quizedu.data.dto.response.PaginationResponse;
 import com.tkt.quizedu.data.dto.response.QuizResponse;
@@ -22,9 +23,10 @@ public interface IQuizService {
 
   void deleteMultipleChoiceQuizQuestion(String quizId, List<UUID> request);
 
-  int evaluateMultipleChoiceQuizQuestion(String quizId, List<SubmitMultipleChoiceRequest> request);
-
-  int evaluateMatchingQuizQuestion(String quizId, MatchingQuiz.UserAnswer request);
+  int evaluateMultipleChoiceQuizQuestion(String quizSessionId, List<SubmitMultipleChoiceRequest> request);
+  List<MultipleChoiceQuiz.Question> getMultipleChoiceHistoryByUserId(String quizSessionId, String userId);
+  int evaluateMatchingQuizQuestion(String quizSessionId, List<MatchingQuiz.AnswerPair> request);
+  List<MatchingQuiz.UserAnswer> getMatchingHistoryByUserId(String quizSessionId, String userId);
 
   QuizResponse updateMultipleChoiceQuizQuestion(
       String quizId, List<UpdateQuestionMultipleChoiceRequest> questions);

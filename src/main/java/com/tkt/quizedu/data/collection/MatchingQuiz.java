@@ -27,6 +27,7 @@ public class MatchingQuiz extends StringIdentityCollection {
   @Id String id;
   int timeLimit;
   String quizId;
+  String quizSessionId;
   @Builder.Default List<MatchPair> matchPairs = new ArrayList<>();
   @Builder.Default List<UserAnswer> answerParticipants = new ArrayList<>();
 
@@ -51,6 +52,7 @@ public class MatchingQuiz extends StringIdentityCollection {
   public static class UserAnswer {
     String userId;
     @Builder.Default List<AnswerPair> answers = new ArrayList<>();
+    String quizSessionId;
   }
 
   @Data
