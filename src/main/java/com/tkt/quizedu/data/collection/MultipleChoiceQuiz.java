@@ -26,6 +26,7 @@ public class MultipleChoiceQuiz extends StringIdentityCollection {
   @Id String id;
   List<Question> questions;
   String quizId;
+  String quizSessionId;
 
   @Data
   public static class Question {
@@ -46,6 +47,7 @@ public class MultipleChoiceQuiz extends StringIdentityCollection {
       String userId;
       String answer;
       boolean correct;
+        String quizSessionId;
     }
 
     @Data

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -37,11 +38,11 @@ public class QuizSession extends StringIdentityCollection {
   @Data
   public static class Participant {
     String userId;
+    @CreatedDate
     LocalDateTime joinedAt;
 
-    public Participant(String userId, LocalDateTime now) {
+    public Participant(String userId) {
       this.userId = userId;
-      this.joinedAt = now;
     }
   }
 }

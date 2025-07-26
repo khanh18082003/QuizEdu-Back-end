@@ -44,4 +44,5 @@ public class Quiz extends StringIdentityCollection {
   LocalDateTime updatedAt;
 
   boolean isActive = true;
+  boolean isPublic;
 }

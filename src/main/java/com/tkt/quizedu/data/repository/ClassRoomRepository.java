@@ -17,6 +17,7 @@ import com.tkt.quizedu.data.dto.response.UserBaseResponse;
 @Repository
 public interface ClassRoomRepository extends BaseRepository<ClassRoom, String> {
 
+    boolean existsByClassCode(String classCode);
   @Aggregation(pipeline = {"{ '$match': { '_id': { '$in': ?0 } } }"})
   List<ClassRoom> countClassroomsByIds(List<String> ids);
 

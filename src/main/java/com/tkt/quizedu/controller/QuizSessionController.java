@@ -1,5 +1,10 @@
 package com.tkt.quizedu.controller;
 
+import com.tkt.quizedu.data.collection.MultipleChoiceQuiz;
+import com.tkt.quizedu.data.dto.request.HistoryQuizSessionRequest;
+import com.tkt.quizedu.data.dto.request.SubmitQuizRequest;
+import com.tkt.quizedu.data.dto.response.HistoryQuizSessionResponse;
+import com.tkt.quizedu.service.quiz.IQuizService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,6 +26,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(EndpointConstant.ENDPOINT_QUIZ_SESSION)
 @RequiredArgsConstructor
@@ -31,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
     description = "APIs for QuizSession registration and management")
 public class QuizSessionController {
   IQuizSessionService quizSessionService;
+  IQuizService quizService;
 
   @PostMapping
   public SuccessApiResponse<QuizSessionResponse> createQuizSession(
@@ -48,8 +56,7 @@ public class QuizSessionController {
   public SuccessApiResponse<Boolean> joinQuizSession(
       @RequestBody JoinQuizSessionRequest joinQuizSessionRequest) {
     Boolean response =
-        quizSessionService.joinQuizSession(
-            joinQuizSessionRequest.accessCode(), joinQuizSessionRequest.studentId());
+        quizSessionService.joinQuizSession(joinQuizSessionRequest.accessCode());
     return SuccessApiResponse.<Boolean>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
@@ -57,4 +64,30 @@ public class QuizSessionController {
         .data(response)
         .build();
   }
+
+  @PostMapping("/submitQuizSession")
+    public SuccessApiResponse<Integer> submitQuizSession(
+        @RequestBody SubmitQuizRequest submitQuizRequest) {
+        int score = quizSessionService.submitQuizSession(submitQuizRequest);
+        return SuccessApiResponse.<Integer>builder()
+            .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+            .status(HttpStatus.OK.value())
+            .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+            .data(score)
+            .build();
+    }
+
+    @PostMapping("/history")
+    public SuccessApiResponse<HistoryQuizSessionResponse> getHistoryByUserId(
+        @RequestBody HistoryQuizSessionRequest historyQuizSessionRequest) {
+        return SuccessApiResponse.<HistoryQuizSessionResponse>builder()
+            .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+            .status(HttpStatus.OK.value())
+            .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+            .data(
+                quizSessionService.getQuizSessionHistory(
+                    historyQuizSessionRequest.quizSessionId(),
+                    historyQuizSessionRequest.userId()))
+            .build();
+    }
 }
