@@ -9,9 +9,7 @@ import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.dto.request.AssignQuizToClassroomRequest;
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
 import com.tkt.quizedu.data.dto.request.JoinClassRoomRequest;
-import com.tkt.quizedu.data.dto.response.ClassRoomResponse;
-import com.tkt.quizedu.data.dto.response.ClassroomDetailResponse;
-import com.tkt.quizedu.data.dto.response.SuccessApiResponse;
+import com.tkt.quizedu.data.dto.response.*;
 import com.tkt.quizedu.service.classroom.IClassRoomService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -100,6 +98,32 @@ public class ClassRoomController {
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .data(response)
+        .build();
+  }
+
+  @GetMapping("/{classRoomId}/students/all")
+  SuccessApiResponse<PaginationResponse<UserBaseResponse>> getAllStudentsInClassRoom(
+      @PathVariable String classRoomId,
+      @RequestParam(name = "page", defaultValue = "1") int page,
+      @RequestParam(name = "pageSize", defaultValue = "20") int pageSize) {
+    return SuccessApiResponse.<PaginationResponse<UserBaseResponse>>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(classRoomService.getAllStudentsInClassRoom(classRoomId, page, pageSize))
+        .build();
+  }
+
+  @GetMapping("/{classRoomId}/quizSessions")
+  SuccessApiResponse<PaginationResponse<QuizDetailResponse>> getQuizSessionsByClassRoomId(
+      @PathVariable String classRoomId,
+      @RequestParam(name = "page", defaultValue = "1") int page,
+      @RequestParam(name = "pageSize", defaultValue = "20") int pageSize) {
+    return SuccessApiResponse.<PaginationResponse<QuizDetailResponse>>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(classRoomService.getQuizSessionsByClassRoomId(classRoomId, page, pageSize))
         .build();
   }
 }

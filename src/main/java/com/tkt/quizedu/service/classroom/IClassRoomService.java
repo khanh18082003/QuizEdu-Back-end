@@ -6,9 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
-import com.tkt.quizedu.data.dto.response.ClassRoomResponse;
-import com.tkt.quizedu.data.dto.response.ClassroomBaseResponse;
-import com.tkt.quizedu.data.dto.response.ClassroomDetailResponse;
+import com.tkt.quizedu.data.dto.response.*;
 
 public interface IClassRoomService {
   ClassRoomResponse createClassRoom(ClassRoomRequest classRoomRequest);
@@ -24,4 +22,12 @@ public interface IClassRoomService {
   Page<ClassroomBaseResponse> getClassroomByIds(List<String> ids, Pageable pageable);
 
   ClassroomDetailResponse getClassroomDetailById(String classRoomId);
+
+  ClassroomBaseResponse getClassroomById(String classRoomId);
+
+  PaginationResponse<UserBaseResponse> getAllStudentsInClassRoom(
+      String classRoomId, int page, int pageSize);
+
+  PaginationResponse<QuizDetailResponse> getQuizSessionsByClassRoomId(
+      String classRoomId, int page, int pageSize);
 }
