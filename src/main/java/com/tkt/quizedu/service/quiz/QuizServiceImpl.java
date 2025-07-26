@@ -7,11 +7,15 @@ import java.util.stream.Collectors;
 
 import com.tkt.quizedu.data.collection.*;
 import com.tkt.quizedu.data.repository.QuizSessionRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tkt.quizedu.data.dto.request.*;
+import com.tkt.quizedu.data.dto.response.PaginationResponse;
 import com.tkt.quizedu.data.dto.response.QuizResponse;
 import com.tkt.quizedu.data.mapper.MatchingQuizMapper;
 import com.tkt.quizedu.data.mapper.MultipleChoiceQuizMapper;
@@ -123,7 +127,66 @@ public class QuizServiceImpl implements IQuizService {
                 .matchingQuiz(
                         matchingQuiz != null ? matchingQuizMapper.toMatchingQuizResponse(matchingQuiz) : null)
                 .build();
-    }
+  }
+
+  @Override
+  public PaginationResponse<QuizResponse> getAll(int page, int pageSize) {
+    CustomUserDetail userDetail = SecurityUtils.getUserDetail();
+    String teacherId = userDetail.getUser().getId();
+
+    Pageable pageable = PageRequest.of(page - 1, pageSize);
+
+    // Lấy danh sách theo phân trang
+    Page<Quiz> quizzesPage = quizRepository.findAllByTeacherId(teacherId, pageable);
+
+    List<QuizResponse> quizResponse =
+        quizzesPage.getContent().stream()
+            .map(
+                quiz -> {
+                  MultipleChoiceQuiz multipleChoiceQuiz =
+                      multipleChoiceQuizRepository.findByQuizId(quiz.getId());
+                  MatchingQuiz matchingQuiz = matchingQuizRepository.findByQuizId(quiz.getId());
+                  return QuizResponse.builder()
+                      .quiz(quiz)
+                      .multipleChoiceQuiz(
+                          multipleChoiceQuiz != null
+                              ? multipleChoiceQuizMapper.toMultipleChoiceQuizResponse(
+                                  multipleChoiceQuiz)
+                              : null)
+                      .matchingQuiz(
+                          matchingQuiz != null
+                              ? matchingQuizMapper.toMatchingQuizResponse(matchingQuiz)
+                              : null)
+                      .build();
+                })
+            .toList();
+
+    return PaginationResponse.<QuizResponse>builder()
+        .data(quizResponse)
+        .page(page)
+        .pageSize(pageSize)
+        .pages(quizzesPage.getTotalPages())
+        .total(quizzesPage.getTotalElements())
+        .build();
+  }
+
+  @Override
+  public QuizResponse getById(String id) {
+    Quiz quiz =
+        quizRepository.findById(id).orElseThrow(() -> new RuntimeException("Quiz not found"));
+    MultipleChoiceQuiz multipleChoiceQuiz = multipleChoiceQuizRepository.findByQuizId(quiz.getId());
+    MatchingQuiz matchingQuiz = matchingQuizRepository.findByQuizId(quiz.getId());
+    // Nếu có các loại quiz khác, thêm logic lấy tương ứng
+    return QuizResponse.builder()
+        .quiz(quiz)
+        .multipleChoiceQuiz(
+            multipleChoiceQuiz != null
+                ? multipleChoiceQuizMapper.toMultipleChoiceQuizResponse(multipleChoiceQuiz)
+                : null)
+        .matchingQuiz(
+            matchingQuiz != null ? matchingQuizMapper.toMatchingQuizResponse(matchingQuiz) : null)
+        .build();
+  }
 
     @Override
     public void delete(String id) {

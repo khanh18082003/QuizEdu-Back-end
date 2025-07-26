@@ -8,6 +8,7 @@ spring:
     mongodb:
       uri: mongodb://admin:secure@localhost:27017/quizlet?authSource=admin
       auto-index-creation: true
+      field-naming-strategy: org.springframework.data.mapping.model.SnakeCaseFieldNamingStrategy
     redis:
       host: localhost
       port: 6379
@@ -72,5 +73,5 @@ aws:
 
 admin:
   email: locnam0312@gmail.com
-  password: admin
+  password: Admin123@
   displayName: Administrator

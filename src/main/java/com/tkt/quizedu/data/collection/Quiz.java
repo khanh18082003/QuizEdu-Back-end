@@ -30,6 +30,7 @@ public class Quiz extends StringIdentityCollection {
   @Id String id;
   String name;
   String description;
+
   String teacherId;
   String subjectId;
   @Builder.Default List<String> classIds = new ArrayList<>();
@@ -43,4 +44,5 @@ public class Quiz extends StringIdentityCollection {
   LocalDateTime updatedAt;
 
   boolean isActive = true;
+  boolean isPublic;
 }
