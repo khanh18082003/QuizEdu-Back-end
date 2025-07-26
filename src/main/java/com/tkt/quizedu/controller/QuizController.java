@@ -6,6 +6,7 @@ import java.util.UUID;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.tkt.quizedu.component.Translator;
@@ -33,6 +34,7 @@ public class QuizController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
+  @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
   SuccessApiResponse<QuizResponse> save(@RequestBody @Valid QuizCreationRequest req) {
     return SuccessApiResponse.<QuizResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())

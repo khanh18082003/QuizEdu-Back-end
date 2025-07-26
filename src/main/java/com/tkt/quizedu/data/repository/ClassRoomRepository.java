@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface ClassRoomRepository extends BaseRepository<ClassRoom, String> {
 
     Optional<ClassRoom> findByClassCode(String classCode);
+    boolean existsByClassCode(String classCode);
 }

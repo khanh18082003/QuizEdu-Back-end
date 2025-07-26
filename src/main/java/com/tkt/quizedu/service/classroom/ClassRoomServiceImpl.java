@@ -40,7 +40,11 @@ public class ClassRoomServiceImpl implements IClassRoomService {
     CustomUserDetail userDetail = SecurityUtils.getUserDetail();
     ClassRoom classRoom = classRoomMapper.toClassRoom(classRoomRequest);
     classRoom.setTeacherId(userDetail.getUser().getId());
-    classRoom.setClassCode(GenerateVerificationCode.generateCode());
+    String classCode = GenerateVerificationCode.generateCode();
+    while (classRoomRepository.existsByClassCode(classCode)) {
+      classCode = GenerateVerificationCode.generateCode();
+    }
+    classRoom.setClassCode(classCode);
     return classRoomMapper.toClassRoomResponse(classRoomRepository.save(classRoom));
   }
 
