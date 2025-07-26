@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,13 +13,16 @@ import com.tkt.quizedu.data.collection.ClassRoom;
 import com.tkt.quizedu.data.collection.CustomUserDetail;
 import com.tkt.quizedu.data.collection.Quiz;
 import com.tkt.quizedu.data.collection.User;
+import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
 import com.tkt.quizedu.data.dto.response.*;
 import com.tkt.quizedu.data.mapper.ClassRoomMapper;
 import com.tkt.quizedu.data.mapper.UserMapper;
 import com.tkt.quizedu.data.repository.ClassRoomRepository;
 import com.tkt.quizedu.data.repository.QuizRepository;
+import com.tkt.quizedu.data.repository.QuizSessionRepository;
 import com.tkt.quizedu.data.repository.UserRepository;
+import com.tkt.quizedu.exception.QuizException;
 import com.tkt.quizedu.utils.GenerateVerificationCode;
 import com.tkt.quizedu.utils.SecurityUtils;
 
@@ -39,6 +43,7 @@ public class ClassRoomServiceImpl implements IClassRoomService {
   ClassRoomMapper classRoomMapper;
   QuizRepository quizRepository;
   UserMapper userMapper;
+  QuizSessionRepository quizSessionRepository;
 
   @Override
   public ClassRoomResponse createClassRoom(ClassRoomRequest classRoomRequest) {
@@ -93,7 +98,7 @@ public class ClassRoomServiceImpl implements IClassRoomService {
     ClassRoom classRoom =
         classRoomRepository
             .findById(classRoomId)
-            .orElseThrow(() -> new RuntimeException("Classroom not found"));
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     List<String> studentIds = classRoom.getStudentIds();
     List<User> students = userRepository.findAllById(studentIds);
     List<UserBaseResponse> studentProfiles =
@@ -111,14 +116,68 @@ public class ClassRoomServiceImpl implements IClassRoomService {
                         .isActive(quiz.isActive())
                         .build())
             .toList();
+    UserBaseResponse teacher =
+        userMapper.toUserBaseResponse(
+            userRepository
+                .findById(classRoom.getTeacherId())
+                .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID)));
     return ClassroomDetailResponse.builder()
         .id(classRoom.getId())
         .name(classRoom.getName())
         .description(classRoom.getDescription())
         .classCode(classRoom.getClassCode())
         .createdAt(classRoom.getCreatedAt())
+        .teacher(teacher)
         .quiz(quizResponses)
         .students(studentProfiles)
+        .build();
+  }
+
+  @Override
+  public ClassroomBaseResponse getClassroomById(String classRoomId) {
+
+    return classRoomRepository
+        .findClassroomResponseById(classRoomId)
+        .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_CLASSROOM_NOT_FOUND));
+  }
+
+  @Override
+  public PaginationResponse<UserBaseResponse> getAllStudentsInClassRoom(
+      String classRoomId, int page, int pageSize) {
+    ClassRoom classRoom =
+        classRoomRepository
+            .findById(classRoomId)
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    List<String> studentIds = classRoom.getStudentIds();
+    Pageable pageable = PageRequest.of(page - 1, pageSize);
+
+    List<UserBaseResponse> students =
+        classRoomRepository.findAllStudentsInClassRoom(classRoomId, pageable);
+    Page<UserBaseResponse> studentPage = new PageImpl<>(students, pageable, studentIds.size());
+
+    return PaginationResponse.<UserBaseResponse>builder()
+        .page(studentPage.getNumber())
+        .pageSize(studentPage.getSize())
+        .pages(studentPage.getTotalPages())
+        .total(studentPage.getTotalElements())
+        .data(studentPage.getContent())
+        .build();
+  }
+
+  @Override
+  public PaginationResponse<QuizDetailResponse> getQuizSessionsByClassRoomId(
+      String classRoomId, int page, int pageSize) {
+    Pageable pageable = PageRequest.of(page - 1, pageSize);
+    List<QuizDetailResponse> quizDetailResponseList =
+        quizSessionRepository.findAllQuizzSessionByClassId(classRoomId, pageable);
+    Page<QuizDetailResponse> quizDetailResponsePage =
+        new PageImpl<>(quizDetailResponseList, pageable, quizDetailResponseList.size());
+    return PaginationResponse.<QuizDetailResponse>builder()
+        .page(quizDetailResponsePage.getNumber())
+        .pageSize(quizDetailResponsePage.getSize())
+        .pages(quizDetailResponsePage.getTotalPages())
+        .total(quizDetailResponsePage.getTotalElements())
+        .data(quizDetailResponsePage.getContent())
         .build();
   }
 

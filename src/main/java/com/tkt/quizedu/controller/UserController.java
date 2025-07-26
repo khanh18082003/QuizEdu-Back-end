@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,6 +16,7 @@ import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.dto.request.*;
 import com.tkt.quizedu.data.dto.response.*;
+import com.tkt.quizedu.service.classroom.IClassRoomService;
 import com.tkt.quizedu.service.user.IUserService;
 import com.tkt.quizedu.utils.GenerateVerificationCode;
 
@@ -33,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 public class UserController {
 
   IUserService userService;
+  IClassRoomService classRoomService;
   KafkaTemplate<String, String> kafkaTemplate;
   RedisTemplate<String, Object> redisTemplate;
 
@@ -170,12 +173,25 @@ public class UserController {
   }
 
   @DeleteMapping("/classrooms/{classRoomId}")
+  @PreAuthorize("hasRole('STUDENT')")
   SuccessApiResponse<Void> leaveClassRoom(@PathVariable String classRoomId) {
     userService.leaveClassRoom(classRoomId);
     return SuccessApiResponse.<Void>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
+  }
+
+  @GetMapping("/classrooms/{classRoomId}")
+  @PreAuthorize("hasRole('STUDENT')")
+  SuccessApiResponse<ClassroomBaseResponse> getClassroomById(@PathVariable String classRoomId) {
+    ClassroomBaseResponse classroom = classRoomService.getClassroomById(classRoomId);
+    return SuccessApiResponse.<ClassroomBaseResponse>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(classroom)
         .build();
   }
 }

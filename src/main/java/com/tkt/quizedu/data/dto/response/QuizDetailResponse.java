@@ -1,7 +1,7 @@
 package com.tkt.quizedu.data.dto.response;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -14,14 +14,12 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Builder
-public class ClassroomDetailResponse {
+public class QuizDetailResponse implements Serializable {
   String id;
   String name;
   String description;
-  String classCode;
-  LocalDateTime createdAt;
-  UserBaseResponse teacher;
-  List<QuizBaseResponse> quiz;
-  List<UserBaseResponse> students;
+  boolean isActive;
+  String quizSessionId;
+  LocalDateTime startTime;
+  LocalDateTime endTime;
 }
