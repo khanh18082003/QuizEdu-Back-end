@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.tkt.quizedu.data.base.StringIdentityCollection;
@@ -32,14 +33,14 @@ public class QuizSession extends StringIdentityCollection {
   SessionStatus status;
   String accessCode;
   LocalDateTime startTime;
-  LocalDateTime endTime;
+  @CreatedDate LocalDateTime createdAt;
+  @LastModifiedDate LocalDateTime updatedAt;
   @Builder.Default List<Participant> participants = new ArrayList<>();
 
   @Data
   public static class Participant {
     String userId;
-    @CreatedDate
-    LocalDateTime joinedAt;
+    @CreatedDate LocalDateTime joinedAt;
 
     public Participant(String userId) {
       this.userId = userId;

@@ -24,9 +24,14 @@ public interface IQuizService {
 
   void deleteMultipleChoiceQuizQuestion(String quizId, List<UUID> request);
 
-  int evaluateMultipleChoiceQuizQuestion(String quizSessionId, List<SubmitMultipleChoiceRequest> request);
-  List<MultipleChoiceQuiz.Question> getMultipleChoiceHistoryByUserId(String quizSessionId, String userId);
+  int evaluateMultipleChoiceQuizQuestion(
+      String quizSessionId, List<SubmitMultipleChoiceRequest> request);
+
+  List<MultipleChoiceQuiz.Question> getMultipleChoiceHistoryByUserId(
+      String quizSessionId, String userId);
+
   int evaluateMatchingQuizQuestion(String quizSessionId, List<MatchingQuiz.AnswerPair> request);
+
   List<MatchingQuiz.UserAnswer> getMatchingHistoryByUserId(String quizSessionId, String userId);
 
   QuizResponse updateMultipleChoiceQuizQuestion(

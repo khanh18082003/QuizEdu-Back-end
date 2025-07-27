@@ -25,7 +25,7 @@ public enum ErrorCode {
   MESSAGE_CLASSROOM_NOT_FOUND("M106", HttpStatus.BAD_REQUEST),
   MESSAGE_USER_NOT_IN_CLASSROOM("M107", HttpStatus.BAD_REQUEST),
   MESSAGE_OPERATION_FAILED("M108", HttpStatus.BAD_REQUEST),
-  ;
+  MESSAGE_PASSWORD_ALREADY_EXISTS("M109", HttpStatus.BAD_REQUEST);
 
   private final String code;
   private final HttpStatus statusCode;

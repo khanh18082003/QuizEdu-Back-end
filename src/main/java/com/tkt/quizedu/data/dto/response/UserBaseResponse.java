@@ -22,6 +22,7 @@ public class UserBaseResponse implements Serializable {
   String lastName;
   String displayName;
   String avatar;
+  Boolean noPassword;
   boolean isActive;
   UserRole role;
   LocalDateTime createdAt;

@@ -47,7 +47,7 @@ public class MultipleChoiceQuiz extends StringIdentityCollection {
       String userId;
       String answer;
       boolean correct;
-        String quizSessionId;
+      String quizSessionId;
     }
 
     @Data

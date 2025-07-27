@@ -1,3 +1,6 @@
 package com.tkt.quizedu.data.dto.request;
 
-public record QuizSessionRequest(String quizId, String classId, String teacherId) {}
+import java.time.LocalDateTime;
+
+public record QuizSessionRequest(
+    String quizId, String classId, String teacherId, LocalDateTime startTime) {}

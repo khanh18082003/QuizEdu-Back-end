@@ -15,13 +15,11 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class QuizDetailResponse implements Serializable {
+@Builder
+public class QuizSessionDetailResponse implements Serializable {
   String id;
-  String name;
-  String description;
-  String quizSessionId;
-  SessionStatus status;
+  UserBaseResponse teacher;
   LocalDateTime startTime;
-  LocalDateTime endTime;
-  LocalDateTime createdAt;
+  Integer totalQuestions;
+  SessionStatus status;
 }

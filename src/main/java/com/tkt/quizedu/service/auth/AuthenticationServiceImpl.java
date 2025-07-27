@@ -14,18 +14,17 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.tkt.quizedu.data.collection.CustomUserDetail;
 import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.constant.TokenType;
 import com.tkt.quizedu.data.constant.UserRole;
-import com.tkt.quizedu.data.dto.request.AuthenticationDTORequest;
-import com.tkt.quizedu.data.dto.request.ExchangeTokenRequest;
-import com.tkt.quizedu.data.dto.request.ForgotPasswordDTORequest;
-import com.tkt.quizedu.data.dto.request.ResendCodeDTORequest;
+import com.tkt.quizedu.data.dto.request.*;
 import com.tkt.quizedu.data.dto.response.AuthenticationResponse;
 import com.tkt.quizedu.data.repository.UserRepository;
 import com.tkt.quizedu.data.repository.httpClient.OutboundIdentityClient;
@@ -58,6 +57,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
   CustomUserDetailService customUserDetailService;
   OutboundIdentityClient outboundIdentityClient;
   OutboundUserClient outboundUserClient;
+  PasswordEncoder passwordEncoder;
 
   @NonFinal
   @Value("${jwt.expirationDay}")
@@ -241,6 +241,27 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     storeAccessTokenInRedis(accessToken, user.getEmail());
 
     return AuthenticationResponse.builder().accessToken(accessToken).role(role).build();
+  }
+
+  @Override
+  public void createPassword(CreatePasswordDTORequest req) {
+    CustomUserDetail userDetail = SecurityUtils.getUserDetail();
+
+    if (userDetail == null) {
+      throw new QuizException(ErrorCode.MESSAGE_UNAUTHENTICATED);
+    }
+    User user = userDetail.getUser();
+
+    if (StringUtils.hasText(user.getPassword())) {
+      throw new QuizException(ErrorCode.MESSAGE_PASSWORD_ALREADY_EXISTS);
+    }
+
+    if (!req.password().equals(req.confirmPassword())) {
+      throw new QuizException(ErrorCode.MESSAGE_PASSWORD_NOT_MATCH);
+    }
+
+    user.setPassword(passwordEncoder.encode(req.password()));
+    userRepository.save(user);
   }
 
   private void storeAccessTokenInRedis(String accessToken, String email) {
