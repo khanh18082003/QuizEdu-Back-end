@@ -162,4 +162,14 @@ public class AuthenticationController {
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .build();
   }
+
+  @PostMapping("/creation-password")
+  SuccessApiResponse<Void> createPassword(@Valid @RequestBody CreatePasswordDTORequest req) {
+    authenticationService.createPassword(req);
+    return SuccessApiResponse.<Void>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(ErrorCode.MESSAGE_SUCCESS.getStatusCode().value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
+  }
 }

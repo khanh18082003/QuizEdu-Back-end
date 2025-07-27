@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tkt.quizedu.data.collection.ClassRoom;
@@ -122,8 +123,9 @@ public class UserServiceImpl implements IUserService {
     }
 
     User user = userDetail.getUser();
-
-    return userMapper.toProfileResponse(user);
+    UserBaseResponse response = userMapper.toProfileResponse(user);
+    response.setNoPassword(!StringUtils.hasText(user.getPassword()));
+    return response;
   }
 
   @Override

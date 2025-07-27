@@ -28,6 +28,7 @@ public class StudentProfileResponse extends UserBaseResponse implements Serializ
       String lastName,
       String displayName,
       String avatar,
+      boolean noPassword,
       boolean isActive,
       UserRole role,
       LocalDateTime createdAt,
@@ -35,7 +36,17 @@ public class StudentProfileResponse extends UserBaseResponse implements Serializ
       EducationLevel level,
       String schoolName) {
     super(
-        id, email, firstName, lastName, displayName, avatar, isActive, role, createdAt, updatedAt);
+        id,
+        email,
+        firstName,
+        lastName,
+        displayName,
+        avatar,
+        noPassword,
+        isActive,
+        role,
+        createdAt,
+        updatedAt);
     this.level = level;
     this.schoolName = schoolName;
   }

@@ -28,6 +28,7 @@ public class TeacherProfileResponse extends UserBaseResponse implements Serializ
       String lastName,
       String displayName,
       String avatar,
+      boolean noPassword,
       boolean isActive,
       UserRole role,
       LocalDateTime createdAt,
@@ -36,7 +37,17 @@ public class TeacherProfileResponse extends UserBaseResponse implements Serializ
       String experience,
       String schoolName) {
     super(
-        id, email, firstName, lastName, displayName, avatar, isActive, role, createdAt, updatedAt);
+        id,
+        email,
+        firstName,
+        lastName,
+        displayName,
+        avatar,
+        noPassword,
+        isActive,
+        role,
+        createdAt,
+        updatedAt);
     this.subjects = subjects;
     this.experience = experience;
     this.schoolName = schoolName;
