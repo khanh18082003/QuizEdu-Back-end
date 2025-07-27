@@ -2,16 +2,20 @@ package com.tkt.quizedu.service.classroom;
 
 import java.util.List;
 
-import com.tkt.quizedu.data.collection.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tkt.quizedu.data.collection.ClassRoom;
 import com.tkt.quizedu.data.collection.CustomUserDetail;
 import com.tkt.quizedu.data.collection.Quiz;
+import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
-import com.tkt.quizedu.data.dto.response.ClassRoomResponse;
+import com.tkt.quizedu.data.dto.response.*;
 import com.tkt.quizedu.data.mapper.ClassRoomMapper;
+import com.tkt.quizedu.data.mapper.UserMapper;
 import com.tkt.quizedu.data.repository.ClassRoomRepository;
 import com.tkt.quizedu.data.repository.QuizRepository;
 import com.tkt.quizedu.data.repository.UserRepository;
@@ -34,6 +38,7 @@ public class ClassRoomServiceImpl implements IClassRoomService {
   UserRepository userRepository;
   ClassRoomMapper classRoomMapper;
   QuizRepository quizRepository;
+  UserMapper userMapper;
 
   @Override
   public ClassRoomResponse createClassRoom(ClassRoomRequest classRoomRequest) {
@@ -73,12 +78,61 @@ public class ClassRoomServiceImpl implements IClassRoomService {
   }
 
   @Override
+  public Page<ClassroomBaseResponse> getClassroomByIds(List<String> ids, Pageable pageable) {
+    long total = classRoomRepository.countClassroomsByIds(ids).size();
+
+    // Lấy data với pagination
+    List<ClassroomBaseResponse> content =
+        classRoomRepository.findClassroomResponsesByIds(ids, pageable);
+    log.info("Total classrooms found: {}", total);
+    content.forEach(
+        classroomBaseResponse ->
+            log.info("Classroom: {}", classroomBaseResponse.getTeacher().getId()));
+
+    return new PageImpl<>(content, pageable, total);
+  }
+
+  @Override
+  public ClassroomDetailResponse getClassroomDetailById(String classRoomId) {
+    ClassRoom classRoom =
+        classRoomRepository
+            .findById(classRoomId)
+            .orElseThrow(() -> new RuntimeException("Classroom not found"));
+    List<String> studentIds = classRoom.getStudentIds();
+    List<User> students = userRepository.findAllById(studentIds);
+    List<UserBaseResponse> studentProfiles =
+        students.stream().map(userMapper::toUserBaseResponse).toList();
+    List<String> assignedQuizIds = classRoom.getAssignedQuizIds();
+    List<Quiz> quizzes = quizRepository.findAllById(assignedQuizIds);
+    List<QuizBaseResponse> quizResponses =
+        quizzes.stream()
+            .map(
+                quiz ->
+                    QuizBaseResponse.builder()
+                        .id(quiz.getId())
+                        .name(quiz.getName())
+                        .description(quiz.getDescription())
+                        .isActive(quiz.isActive())
+                        .build())
+            .toList();
+    return ClassroomDetailResponse.builder()
+        .id(classRoom.getId())
+        .name(classRoom.getName())
+        .description(classRoom.getDescription())
+        .classCode(classRoom.getClassCode())
+        .createdAt(classRoom.getCreatedAt())
+        .quiz(quizResponses)
+        .students(studentProfiles)
+        .build();
+  }
+
   public Boolean joinClassRoom(String classCode) {
     CustomUserDetail userDetail = SecurityUtils.getUserDetail();
     User user = userDetail.getUser();
     ClassRoom classRoom =
         classRoomRepository
-            .findByClassCode(classCode).orElseThrow(
+            .findByClassCode(classCode)
+            .orElseThrow(
                 () -> new RuntimeException("Classroom with code " + classCode + " not found"));
     List<String> studentIds = classRoom.getStudentIds();
     if (studentIds.contains(userDetail.getUser().getId())) {

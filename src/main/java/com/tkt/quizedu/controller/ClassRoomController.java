@@ -1,6 +1,5 @@
 package com.tkt.quizedu.controller;
 
-import com.tkt.quizedu.data.dto.request.JoinClassRoomRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,7 +8,9 @@ import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.dto.request.AssignQuizToClassroomRequest;
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
+import com.tkt.quizedu.data.dto.request.JoinClassRoomRequest;
 import com.tkt.quizedu.data.dto.response.ClassRoomResponse;
+import com.tkt.quizedu.data.dto.response.ClassroomDetailResponse;
 import com.tkt.quizedu.data.dto.response.SuccessApiResponse;
 import com.tkt.quizedu.service.classroom.IClassRoomService;
 
@@ -82,6 +83,19 @@ public class ClassRoomController {
         classRoomService.assignQuizToClassroom(
             assignQuizToClassroomRequest.classRoomId(), assignQuizToClassroomRequest.quizId());
     return SuccessApiResponse.<Boolean>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(response)
+        .build();
+  }
+
+  @GetMapping("/{classRoomId}")
+  public SuccessApiResponse<ClassroomDetailResponse> getClassroomDetail(
+      @PathVariable String classRoomId) {
+
+    ClassroomDetailResponse response = classRoomService.getClassroomDetailById(classRoomId);
+    return SuccessApiResponse.<ClassroomDetailResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))

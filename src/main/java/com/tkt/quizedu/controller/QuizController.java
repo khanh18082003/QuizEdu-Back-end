@@ -14,6 +14,7 @@ import com.tkt.quizedu.component.Translator;
 import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.dto.request.*;
+import com.tkt.quizedu.data.dto.response.PaginationResponse;
 import com.tkt.quizedu.data.dto.response.QuizResponse;
 import com.tkt.quizedu.data.dto.response.SuccessApiResponse;
 import com.tkt.quizedu.service.quiz.IQuizService;
@@ -45,16 +46,17 @@ public class QuizController {
                 .build();
     }
 
-    @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    SuccessApiResponse<List<QuizResponse>> getAll() {
-        return SuccessApiResponse.<List<QuizResponse>>builder()
-                .code(ErrorCode.MESSAGE_SUCCESS.getCode())
-                .status(HttpStatus.OK.value())
-                .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
-                .data(quizService.getAll())
-                .build();
-    }
+  @GetMapping
+  @ResponseStatus(HttpStatus.OK)
+  SuccessApiResponse<PaginationResponse<QuizResponse>> getAll(
+      @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "9") int pageSize) {
+    return SuccessApiResponse.<PaginationResponse<QuizResponse>>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(quizService.getAll(page, pageSize))
+        .build();
+  }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)

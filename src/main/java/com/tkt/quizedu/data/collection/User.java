@@ -30,59 +30,42 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 public class User extends StringIdentityCollection {
-    @Serial
-    private static final long serialVersionUID = -5465733518693373245L;
+  @Serial private static final long serialVersionUID = -5465733518693373245L;
 
-    @Id
-    @Field(name = "_id", targetType = FieldType.OBJECT_ID)
-    String id;
+  @Id
+  @Field(name = "_id", targetType = FieldType.OBJECT_ID)
+  String id;
 
-    @Field(name = "email")
-    @Indexed(unique = true)
-    String email;
+  @Indexed(unique = true)
+  String email;
 
-    String password;
+  String password;
 
-    @Field(name = "first_name")
-    String firstName;
+  String firstName;
 
-    @Field(name = "last_name")
-    String lastName;
+  String lastName;
 
-    @Field(name = "display_name")
-    String displayName;
+  String displayName;
 
-    @Field(name = "avatar")
-    String avatar;
+  String avatar;
 
-    UserRole role;
+  UserRole role;
 
-    EducationLevel level;
+  EducationLevel level;
 
-    @Field(name = "school_name")
-    String schoolName;
+  String schoolName;
 
-    @Field(name = "is_active")
-    boolean isActive;
+  boolean isActive;
 
-    @Field(name = "class_ids")
-    @Builder.Default
-    List<String> classIds = new ArrayList<>();
+  @Builder.Default List<String> classIds = new ArrayList<>();
 
-    @Field(name = "subjects")
-    Set<String> subjects;
+  Set<String> subjects;
 
-    @Field(name = "qualifications")
-    Set<String> qualifications;
+  String experience;
 
-    @Field(name = "experience")
-    String experience;
+  String qualification;
 
-    @Field(name = "created_at")
-    @CreatedDate
-    LocalDateTime createdAt;
+  @CreatedDate LocalDateTime createdAt;
 
-    @Field(name = "updated_at")
-    @LastModifiedDate
-    LocalDateTime updatedAt;
+  @LastModifiedDate LocalDateTime updatedAt;
 }
