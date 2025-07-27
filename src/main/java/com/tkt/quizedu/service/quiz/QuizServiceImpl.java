@@ -6,6 +6,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.tkt.quizedu.data.collection.*;
+import com.tkt.quizedu.data.dto.response.MatchingQuizResponse;
+import com.tkt.quizedu.data.dto.response.MultipleChoiceQuizResponse;
+import com.tkt.quizedu.data.dto.response.PracticeResponse;
 import com.tkt.quizedu.data.repository.QuizSessionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -554,4 +557,44 @@ public class QuizServiceImpl implements IQuizService {
                         matchingQuizMapper.toMatchingQuizResponse(matchingQuizRepository.findByQuizId(quizId)))
                 .build();
     }
+
+    @Override
+    public PracticeResponse getQuizPractice(PracticeRequest request) {
+        MultipleChoiceQuizResponse multipleChoiceQuiz = null;
+        List<MultipleChoiceQuizResponse.QuestionResponse> questions = new ArrayList<>();
+        MatchingQuizResponse matchingQuiz = null;
+        List<MatchingQuizResponse.MatchPairResponse> matchPairs = new ArrayList<>();
+
+        for (String quizId : request.quizIDs()) {
+            MultipleChoiceQuiz mcQuiz = multipleChoiceQuizRepository.findByQuizId(quizId);
+            if (mcQuiz != null) {
+                multipleChoiceQuiz = multipleChoiceQuizMapper.toMultipleChoiceQuizResponse(mcQuiz);
+                questions.addAll(multipleChoiceQuiz.getQuestions());
+            }
+            MatchingQuiz mQuiz = matchingQuizRepository.findByQuizId(quizId);
+            if (mQuiz != null) {
+                matchingQuiz = matchingQuizMapper.toMatchingQuizResponse(mQuiz);
+                matchPairs.addAll(matchingQuiz.getQuestions());
+            }
+        }
+        // Xáo trộn câu hỏi và cặp ghép
+        questions.sort((q1, q2) -> Double.compare(Math.random(), Math.random()));
+        matchPairs.sort((p1, p2) -> Double.compare(Math.random(), Math.random()));
+
+        if (questions.size() > request.quantityMultipleChoice()) {
+            questions = questions.subList(0, request.quantityMultipleChoice());
+        }
+        if (matchPairs.size() > request.quantityMultipleChoice()) {
+            matchPairs = matchPairs.subList(0, request.quantityMultipleChoice());
+        }
+        assert multipleChoiceQuiz != null;
+        multipleChoiceQuiz.setQuestions(questions);
+        assert matchingQuiz != null;
+        matchingQuiz.setQuestions(matchPairs);
+        return PracticeResponse.builder()
+                .multipleChoiceQuiz(multipleChoiceQuiz)
+                .matchingQuiz(matchingQuiz)
+                .build();
+    }
+
 }

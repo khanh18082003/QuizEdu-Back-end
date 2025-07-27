@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.tkt.quizedu.data.collection.MatchingQuiz;
 import com.tkt.quizedu.data.collection.MultipleChoiceQuiz;
 import com.tkt.quizedu.data.dto.request.*;
+import com.tkt.quizedu.data.dto.response.PracticeResponse;
 import com.tkt.quizedu.data.dto.response.QuizResponse;
 
 public interface IQuizService {
@@ -39,4 +40,6 @@ public interface IQuizService {
       String quizId, List<UpdateMatchingQuestionRequest> questions);
 
   QuizResponse addQuizQuestion(String quizId, AddQuizRequest request);
+
+  PracticeResponse getQuizPractice(PracticeRequest request);
 }
