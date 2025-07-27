@@ -1,0 +1,18 @@
+package com.tkt.quizedu.data.dto.response;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Getter
+@Setter
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class PracticeResponse {
+    private MultipleChoiceQuizResponse multipleChoiceQuiz;
+    private MatchingQuizResponse matchingQuiz;
+    // còn các loại quiz khác
+}
