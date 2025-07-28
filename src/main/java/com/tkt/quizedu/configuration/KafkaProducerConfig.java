@@ -39,4 +39,9 @@ public class KafkaProducerConfig {
   public NewTopic confirmAccount() {
     return new NewTopic("confirm-account-topic", 3, (short) 1);
   }
+
+  @Bean
+  public NewTopic sendClassCodeToEmails() {
+    return new NewTopic("send-class-code-to-emails", 3, (short) 1);
+  }
 }

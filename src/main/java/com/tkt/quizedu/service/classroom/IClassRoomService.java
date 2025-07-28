@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
+import com.tkt.quizedu.data.dto.request.InviteStudentsToClassRoomRequest;
 import com.tkt.quizedu.data.dto.response.*;
 
 public interface IClassRoomService {
@@ -30,4 +31,6 @@ public interface IClassRoomService {
 
   PaginationResponse<QuizDetailResponse> getQuizSessionsByClassRoomId(
       String classRoomId, int page, int pageSize);
+
+  void inviteStudentsToClassRoom(InviteStudentsToClassRoomRequest inviteStudentsToClassRoomRequest);
 }

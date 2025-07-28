@@ -1,6 +1,7 @@
 package com.tkt.quizedu.data.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -12,7 +13,7 @@ import lombok.experimental.FieldDefaults;
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PracticeResponse {
-    private MultipleChoiceQuizResponse multipleChoiceQuiz;
-    private MatchingQuizResponse matchingQuiz;
-    // còn các loại quiz khác
+  private MultipleChoiceQuizResponse multipleChoiceQuiz;
+  private MatchingQuizResponse matchingQuiz;
+  // còn các loại quiz khác
 }

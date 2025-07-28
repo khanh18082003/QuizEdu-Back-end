@@ -62,4 +62,50 @@ public class MailService {
 
     mailSender.send(mimeMessage);
   }
+
+  @KafkaListener(topics = "send-class-code-to-emails", groupId = "quizedu-group")
+  private void sendClassCodeToEmails(String message)
+      throws MessagingException, UnsupportedEncodingException {
+    // Fix the splitting - current code splits by empty string which separates each character
+    String[] parts = message.split(",");
+
+    // Parse emails and class code
+    String emailsString = parts[0].substring(parts[0].indexOf("=") + 1);
+    String classCode = parts[1].substring(parts[1].indexOf("=") + 1);
+    String teacherName = parts[2].substring(parts[2].indexOf("=") + 1);
+    String classroomName = parts[3].substring(parts[3].indexOf("=") + 1);
+
+    // Split the email addresses by semicolon
+    String[] emails = emailsString.split(";");
+
+    log.info("Sending class code {} to {} recipients", classCode, emails.length);
+
+    for (String email : emails) {
+      sendClassCodeEmail(email.trim(), classCode, teacherName, classroomName);
+    }
+  }
+
+  private void sendClassCodeEmail(String email, String classCode, String teacherName, String classroomName)
+      throws MessagingException, UnsupportedEncodingException {
+    MimeMessage mimeMessage = mailSender.createMimeMessage();
+    MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+    helper.setFrom(from, "QuizEdu Support");
+    helper.setTo(email);
+    helper.setSubject("Your Class Code for QuizEdu");
+
+    Map<String, Object> variables = new HashMap<>();
+    variables.put("classCode", classCode);
+    variables.put("teacherName", teacherName);
+    variables.put("classroomName", classroomName);
+    variables.put("supportEmail", supportEmail);
+
+    Context context = new Context();
+    context.setVariables(variables);
+    String content = springTemplateEngine.process("class-code-email.html", context);
+    helper.setText(content, true);
+
+    mailSender.send(mimeMessage);
+    log.info("Class code email sent to: {}", email);
+  }
 }
