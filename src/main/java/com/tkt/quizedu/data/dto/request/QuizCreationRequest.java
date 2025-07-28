@@ -6,7 +6,6 @@ import lombok.Builder;
 public record QuizCreationRequest(
     String name,
     String description,
-    String subjectId,
     boolean isActive,
     MultipleChoiceQuizRequest multipleChoiceQuiz,
     MatchingQuizRequest matchingQuiz
