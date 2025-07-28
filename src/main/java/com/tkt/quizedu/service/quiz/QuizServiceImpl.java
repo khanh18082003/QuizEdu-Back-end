@@ -1,27 +1,11 @@
 package com.tkt.quizedu.service.quiz;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tkt.quizedu.data.collection.*;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.constant.MatchingType;
 import com.tkt.quizedu.data.dto.request.*;
 import com.tkt.quizedu.data.dto.response.*;
-import com.tkt.quizedu.data.dto.response.MatchingQuizResponse;
-import com.tkt.quizedu.data.dto.response.MultipleChoiceQuizResponse;
-import com.tkt.quizedu.data.dto.response.PaginationResponse;
-import com.tkt.quizedu.data.dto.response.PracticeResponse;
-import com.tkt.quizedu.data.dto.response.QuizResponse;
 import com.tkt.quizedu.data.mapper.MatchingQuizMapper;
 import com.tkt.quizedu.data.mapper.MultipleChoiceQuizMapper;
 import com.tkt.quizedu.data.mapper.QuizMapper;
