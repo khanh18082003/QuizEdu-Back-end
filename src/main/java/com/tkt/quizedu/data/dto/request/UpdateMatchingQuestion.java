@@ -7,16 +7,23 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MatchingQuestionRequest {
-    private String contentA;
+public class UpdateMatchingQuestion {
+    private UUID id;
+
+    private String textContentA;
     private MultipartFile fileContentA;
     private MatchingType typeA;
-    private String contentB;
+
+    private String textContentB;
     private MultipartFile fileContentB;
     private MatchingType typeB;
-    private int points;
+
+    private Integer points;
 }
+

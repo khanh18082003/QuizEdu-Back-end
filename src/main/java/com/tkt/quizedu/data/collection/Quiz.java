@@ -32,7 +32,6 @@ public class Quiz extends StringIdentityCollection {
   String description;
 
   String teacherId;
-  String subjectId;
   @Builder.Default List<String> classIds = new ArrayList<>();
 
   @Field(name = "created_at")

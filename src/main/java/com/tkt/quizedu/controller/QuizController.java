@@ -6,6 +6,7 @@ import java.util.UUID;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import com.tkt.quizedu.component.Translator;
@@ -119,11 +120,11 @@ public class QuizController {
   }
 
   // Additional endpoints for matching quizzes, etc. can be added here
-  @PostMapping("/matching-quizzes/{quizId}/questions")
+  @PostMapping(value="/matching-quizzes/{quizId}/questions", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @ResponseStatus(HttpStatus.OK)
   SuccessApiResponse<QuizResponse> addMatchingQuizQuestion(
-      @PathVariable String quizId, @RequestBody @Valid List<MatchingQuestionRequest> questions) {
-    QuizResponse response = quizService.addMatchingQuizQuestion(quizId, questions);
+      @PathVariable String quizId,  @ModelAttribute MatchingQuizForm form) {
+    QuizResponse response = quizService.addMatchingQuizQuestion(quizId, form.getQuestions());
     return SuccessApiResponse.<QuizResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
@@ -144,12 +145,12 @@ public class QuizController {
         .build();
   }
 
-  @PutMapping("/matching-quizzes/{quizId}/questions")
+  @PutMapping(value = "/matching-quizzes/{quizId}/questions", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @ResponseStatus(HttpStatus.OK)
   SuccessApiResponse<QuizResponse> updateMatchingQuizQuestion(
       @PathVariable String quizId,
-      @RequestBody @Valid List<UpdateMatchingQuestionRequest> questions) {
-    QuizResponse response = quizService.updateMatchingQuizQuestion(quizId, questions);
+      @ModelAttribute @Valid UpdateMatchingQuestionRequest request) {
+    QuizResponse response = quizService.updateMatchingQuizQuestion(quizId, request);
     return SuccessApiResponse.<QuizResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
