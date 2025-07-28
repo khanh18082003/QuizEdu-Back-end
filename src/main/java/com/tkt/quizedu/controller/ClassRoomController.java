@@ -8,6 +8,7 @@ import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.dto.request.AssignQuizToClassroomRequest;
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
+import com.tkt.quizedu.data.dto.request.InviteStudentsToClassRoomRequest;
 import com.tkt.quizedu.data.dto.request.JoinClassRoomRequest;
 import com.tkt.quizedu.data.dto.response.*;
 import com.tkt.quizedu.service.classroom.IClassRoomService;
@@ -37,6 +38,17 @@ public class ClassRoomController {
         .status(HttpStatus.CREATED.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .data(response)
+        .build();
+  }
+
+  @PostMapping("/invited-students")
+  SuccessApiResponse<Void> inviteStudentsToClassRoom(
+      @RequestBody InviteStudentsToClassRoomRequest inviteStudentsToClassRoomRequest) {
+    classRoomService.inviteStudentsToClassRoom(inviteStudentsToClassRoomRequest);
+    return SuccessApiResponse.<Void>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .build();
   }
 

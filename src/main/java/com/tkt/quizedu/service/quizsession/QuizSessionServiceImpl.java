@@ -124,7 +124,8 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
     MultipleChoiceQuiz multipleChoiceQuiz =
         multipleChoiceQuizRepository.findByQuizId(quizSession.getQuizId());
     int totalQuestions =
-        multipleChoiceQuiz.getQuestions().size() + (matchingQuiz.getMatchPairs().size() != 0 ? 1 : 0);
+        multipleChoiceQuiz.getQuestions().size()
+            + (matchingQuiz.getMatchPairs().size() != 0 ? 1 : 0);
     return QuizSessionDetailResponse.builder()
         .id(quizSession.getId())
         .teacher(teacherResponse)

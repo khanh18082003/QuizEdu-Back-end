@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import com.tkt.quizedu.data.collection.Quiz;
 import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
+import com.tkt.quizedu.data.dto.request.InviteStudentsToClassRoomRequest;
 import com.tkt.quizedu.data.dto.response.*;
 import com.tkt.quizedu.data.mapper.ClassRoomMapper;
 import com.tkt.quizedu.data.mapper.UserMapper;
@@ -44,6 +46,7 @@ public class ClassRoomServiceImpl implements IClassRoomService {
   QuizRepository quizRepository;
   UserMapper userMapper;
   QuizSessionRepository quizSessionRepository;
+  KafkaTemplate<String, String> kafkaTemplate;
 
   @Override
   public ClassRoomResponse createClassRoom(ClassRoomRequest classRoomRequest) {
@@ -183,6 +186,29 @@ public class ClassRoomServiceImpl implements IClassRoomService {
         .total(quizDetailResponsePage.getTotalElements())
         .data(quizDetailResponsePage.getContent())
         .build();
+  }
+
+  @Override
+  public void inviteStudentsToClassRoom(
+      InviteStudentsToClassRoomRequest inviteStudentsToClassRoomRequest) {
+    ClassRoom classRoom =
+        classRoomRepository
+            .findById(inviteStudentsToClassRoomRequest.classRoomId())
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    User teacher =
+        userRepository
+            .findById(classRoom.getTeacherId())
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    String emailList = String.join(";", inviteStudentsToClassRoomRequest.studentEmails());
+    String message =
+        String.format(
+            "email=%s,classCode=%s,teacherName=%s,classroomName=%s",
+            emailList,
+            classRoom.getClassCode(),
+            teacher.getFirstName() + " " + teacher.getLastName(),
+            classRoom.getName());
+    kafkaTemplate.send("send-class-code-to-emails", message);
+    log.info("Invited students to classroom with ID: {}", classRoom.getId());
   }
 
   public Boolean joinClassRoom(String classCode) {
