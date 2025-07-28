@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+@Slf4j(topic = "MAIL-SERVICE")
 public class MailService {
   private final JavaMailSender mailSender;
   private final SpringTemplateEngine springTemplateEngine;
@@ -35,77 +36,116 @@ public class MailService {
   String supportEmail;
 
   @KafkaListener(topics = "confirm-account-topic", groupId = "quizedu-group")
-  private void sendConfirmEmailByKafka(String message)
-      throws MessagingException, UnsupportedEncodingException {
-    String[] parts = message.split(",");
-    String email = parts[0].substring(parts[0].indexOf("=") + 1);
-    String name = parts[1].substring(parts[1].indexOf("=") + 1);
-    String code = parts[2].substring(parts[2].indexOf("=") + 1);
-    log.info("Sending confirmation email to: {}, name: {}, code: {}", email, name, code);
+  private void sendConfirmEmailByKafka(String message) {
+    try {
+      String[] parts = message.split(",");
+      String email = extractValue(parts[0]);
+      String name = extractValue(parts[1]);
+      String code = extractValue(parts[2]);
 
-    MimeMessage mimeMessage = mailSender.createMimeMessage();
-    MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+      log.info("Processing confirmation email to: {}, name: {}", email, code);
 
-    helper.setFrom(from, "QuizEdu Support");
-    helper.setTo(email);
-    helper.setSubject("Verification for Your QuizEdu Account");
+      Map<String, Object> variables = new HashMap<>();
+      variables.put("name", name);
+      variables.put("code", code);
+      variables.put("supportEmail", supportEmail);
 
-    Map<String, Object> variables = new HashMap<>();
-    variables.put("name", name);
-    variables.put("code", code);
-    variables.put("supportEmail", supportEmail);
-
-    Context context = new Context();
-    context.setVariables(variables);
-    String content = springTemplateEngine.process("confirm-account.html", context);
-    helper.setText(content, true);
-
-    mailSender.send(mimeMessage);
-  }
-
-  @KafkaListener(topics = "send-class-code-to-emails", groupId = "quizedu-group")
-  private void sendClassCodeToEmails(String message)
-      throws MessagingException, UnsupportedEncodingException {
-    // Fix the splitting - current code splits by empty string which separates each character
-    String[] parts = message.split(",");
-
-    // Parse emails and class code
-    String emailsString = parts[0].substring(parts[0].indexOf("=") + 1);
-    String classCode = parts[1].substring(parts[1].indexOf("=") + 1);
-    String teacherName = parts[2].substring(parts[2].indexOf("=") + 1);
-    String classroomName = parts[3].substring(parts[3].indexOf("=") + 1);
-
-    // Split the email addresses by semicolon
-    String[] emails = emailsString.split(";");
-
-    log.info("Sending class code {} to {} recipients", classCode, emails.length);
-
-    for (String email : emails) {
-      sendClassCodeEmail(email.trim(), classCode, teacherName, classroomName);
+      sendEmail(
+              email,
+              "Verification for Your QuizEdu Account",
+              "confirm-account.html",
+              variables
+      );
+    } catch (Exception e) {
+      log.error("Failed to send confirmation email: {}", e.getMessage(), e);
     }
   }
 
-  private void sendClassCodeEmail(String email, String classCode, String teacherName, String classroomName)
-      throws MessagingException, UnsupportedEncodingException {
+  @KafkaListener(topics = "send-class-code-to-emails", groupId = "quizedu-group")
+  private void sendClassCodeToEmails(String message) {
+    try {
+      String[] parts = message.split(";");
+      String emailsString = extractValue(parts[0]);
+      String classCode = extractValue(parts[1]);
+      String teacherName = extractValue(parts[2]);
+      String classroomName = extractValue(parts[3]);
+
+      Map<String, Object> variables = new HashMap<>();
+      variables.put("classCode", classCode);
+      variables.put("teacherName", teacherName);
+      variables.put("classroomName", classroomName);
+      variables.put("supportEmail", supportEmail);
+
+      sendEmail(
+              emailsString,
+              "Your Class Code for QuizEdu",
+              "class-code-email.html",
+              variables
+      );
+    } catch (Exception e) {
+      log.error("Failed to send class code email: {}", e.getMessage(), e);
+    }
+  }
+
+  @KafkaListener(topics = "send-access-code-to-email", groupId = "quizedu-group")
+  public void sendAccessCodeToEmail(String message) {
+    try {
+      String[] parts = message.split(";");
+      String emailsString = extractValue(parts[0]);
+      String accessCode = extractValue(parts[1]);
+      String quizName = extractValue(parts[2]);
+
+      Map<String, Object> variables = new HashMap<>();
+      variables.put("accessCode", accessCode);
+      variables.put("quizName", quizName);
+      variables.put("supportEmail", supportEmail);
+
+      sendEmail(
+              emailsString,
+              "Access Code for Quiz: " + quizName,
+              "access-code-email.html",
+              variables
+      );
+    } catch (Exception e) {
+      log.error("Failed to send access code email: {}", e.getMessage(), e);
+    }
+  }
+
+  private String extractValue(String part) {
+    int index = part.indexOf("=");
+    return index >= 0 ? part.substring(index + 1) : "";
+  }
+
+  private void sendEmail(String recipients, String subject, String template, Map<String, Object> variables)
+          throws MessagingException, UnsupportedEncodingException {
     MimeMessage mimeMessage = mailSender.createMimeMessage();
     MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
     helper.setFrom(from, "QuizEdu Support");
-    helper.setTo(email);
-    helper.setSubject("Your Class Code for QuizEdu");
 
-    Map<String, Object> variables = new HashMap<>();
-    variables.put("classCode", classCode);
-    variables.put("teacherName", teacherName);
-    variables.put("classroomName", classroomName);
-    variables.put("supportEmail", supportEmail);
+    // Handle multiple recipients
+    if (recipients.contains(";")) {
+      helper.setTo(InternetAddress.parse(recipients.replace(";", ",")));
+      log.info("Sending email to multiple recipients: {}", recipients);
+    } else {
+      helper.setTo(recipients);
+      log.info("Sending email to: {}", recipients);
+    }
 
+    helper.setSubject(subject);
+
+    // Process template
     Context context = new Context();
     context.setVariables(variables);
-    String content = springTemplateEngine.process("class-code-email.html", context);
+    String content = springTemplateEngine.process(template, context);
     helper.setText(content, true);
 
-    mailSender.send(mimeMessage);
-    log.info("Class code email sent to: {}", email);
+    try {
+      mailSender.send(mimeMessage);
+      log.info("Email sent successfully with subject: {}", subject);
+    } catch (Exception e) {
+      log.error("Failed to send email: {}", e.getMessage());
+      throw e;
+    }
   }
 }

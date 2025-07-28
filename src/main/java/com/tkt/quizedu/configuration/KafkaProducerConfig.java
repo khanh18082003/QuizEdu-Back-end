@@ -44,4 +44,9 @@ public class KafkaProducerConfig {
   public NewTopic sendClassCodeToEmails() {
     return new NewTopic("send-class-code-to-emails", 3, (short) 1);
   }
+
+  @Bean
+  public NewTopic sendAccessCodeToEmails() {
+    return new NewTopic("send-access-code-to-emails", 3, (short) 1);
+  }
 }

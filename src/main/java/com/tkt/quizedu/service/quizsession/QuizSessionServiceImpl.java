@@ -1,5 +1,6 @@
 package com.tkt.quizedu.service.quizsession;
 
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import com.tkt.quizedu.data.collection.*;
@@ -24,6 +25,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -37,7 +40,9 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
   IQuizService quizService;
   QuizRepository quizRepository;
   UserRepository userRepository;
+  ClassRoomRepository classRoomRepository;
   UserMapper userMapper;
+  KafkaTemplate<String, String> kafkaTemplate;
 
   @Override
   public QuizSessionResponse createQuizSession(QuizSessionRequest request) {
@@ -48,6 +53,22 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
     }
     quizSession.setAccessCode(accessCode);
     quizSession.setStatus(SessionStatus.LOBBY);
+
+    ClassRoom classRoom = classRoomRepository
+            .findById(quizSession.getClassId())
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    if (!classRoom.getTeacherId().equals(quizSession.getTeacherId())) {
+      throw new QuizException(ErrorCode.MESSAGE_INVALID_ID);
+    }
+    Quiz quiz =
+        quizRepository
+            .findById(quizSession.getQuizId())
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    List<User> students =
+        userRepository.findAllById(classRoom.getStudentIds());
+    String emailList = String.join(",", students.stream().map(User::getEmail).toList());
+    String message = String.format("email=%s;accessCode=%s;quizName=%s", emailList, accessCode, quiz.getName());
+    kafkaTemplate.send("send-access-code-to-emails", message);
     return quizSessionMapper.toResponse(quizSessionRepository.save(quizSession));
   }
 

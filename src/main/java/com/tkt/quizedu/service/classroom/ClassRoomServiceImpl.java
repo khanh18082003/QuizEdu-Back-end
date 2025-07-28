@@ -199,10 +199,10 @@ public class ClassRoomServiceImpl implements IClassRoomService {
         userRepository
             .findById(classRoom.getTeacherId())
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
-    String emailList = String.join(";", inviteStudentsToClassRoomRequest.studentEmails());
+    String emailList = String.join(",", inviteStudentsToClassRoomRequest.studentEmails());
     String message =
         String.format(
-            "email=%s,classCode=%s,teacherName=%s,classroomName=%s",
+            "email=%s;classCode=%s;teacherName=%s;classroomName=%s",
             emailList,
             classRoom.getClassCode(),
             teacher.getFirstName() + " " + teacher.getLastName(),
