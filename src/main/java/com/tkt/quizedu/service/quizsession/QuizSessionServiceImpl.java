@@ -1,5 +1,9 @@
 package com.tkt.quizedu.service.quizsession;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import com.tkt.quizedu.component.WebSocketPublisher;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -24,9 +28,10 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +49,7 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
   ClassRoomRepository classRoomRepository;
   UserMapper userMapper;
   KafkaTemplate<String, String> kafkaTemplate;
+  WebSocketPublisher webSocketPublisher;
 
   @Override
   public QuizSessionResponse createQuizSession(QuizSessionRequest request) {
@@ -55,7 +61,8 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
     quizSession.setAccessCode(accessCode);
     quizSession.setStatus(SessionStatus.LOBBY);
 
-    ClassRoom classRoom = classRoomRepository
+    ClassRoom classRoom =
+        classRoomRepository
             .findById(quizSession.getClassId())
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     if (!classRoom.getTeacherId().equals(quizSession.getTeacherId())) {
@@ -65,29 +72,36 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
         quizRepository
             .findById(quizSession.getQuizId())
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
-    List<User> students =
-        userRepository.findAllById(classRoom.getStudentIds());
+    List<User> students = userRepository.findAllById(classRoom.getStudentIds());
     String emailList = String.join(",", students.stream().map(User::getEmail).toList());
-    String message = String.format("email=%s;accessCode=%s;quizName=%s", emailList, accessCode, quiz.getName());
+    String message =
+        String.format("email=%s;accessCode=%s;quizName=%s", emailList, accessCode, quiz.getName());
     kafkaTemplate.send("send-access-code-to-emails", message);
     return quizSessionMapper.toResponse(quizSessionRepository.save(quizSession));
   }
 
   @Override
-  public boolean joinQuizSession(String accessCode) {
+  @Transactional
+  public void joinQuizSession(String accessCode) {
+    CustomUserDetail userDetail = SecurityUtils.getUserDetail();
+    if (userDetail == null) {
+      throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
+    }
+    User user = userDetail.getUser();
     QuizSession quizSession =
         quizSessionRepository.findByAccessCodeAndStatus(accessCode, SessionStatus.LOBBY);
 
     if (quizSession.getParticipants().stream()
-        .anyMatch(p -> p.getUserId().equals(SecurityUtils.getUserDetail().getUser().getId()))) {
-      return false; // User already joined
+        .anyMatch(p -> p.getUserId().equals(user.getId()))) {
+        throw new QuizException(ErrorCode.MESSAGE_ALREADY_JOINED);
     }
 
     quizSession
         .getParticipants()
         .add(new QuizSession.Participant(SecurityUtils.getUserDetail().getUser().getId()));
     quizSessionRepository.save(quizSession);
-    return true;
+
+    webSocketPublisher.publishJoinQuizSession(quizSession.getId(), userMapper.toUserBaseResponse(user));
   }
 
   @Override
@@ -117,7 +131,9 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
             .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
 
     MultipleChoiceQuiz multipleChoiceQuiz =
-        multipleChoiceQuizRepository.findByQuizId(quizSession.getQuizId());
+        multipleChoiceQuizRepository
+            .findByQuizId(quizSession.getQuizId())
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     multipleChoiceQuiz.setQuestions(
         quizService.getMultipleChoiceHistoryByUserId(quizSessionId, userId));
 
@@ -144,16 +160,41 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
     UserBaseResponse teacherResponse = userMapper.toUserBaseResponse(teacher);
     MatchingQuiz matchingQuiz = matchingQuizRepository.findByQuizId(quizSession.getQuizId());
     MultipleChoiceQuiz multipleChoiceQuiz =
-        multipleChoiceQuizRepository.findByQuizId(quizSession.getQuizId());
+        multipleChoiceQuizRepository
+            .findByQuizId(quizSession.getQuizId())
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     int totalQuestions =
         multipleChoiceQuiz.getQuestions().size()
-            + (matchingQuiz.getMatchPairs().size() != 0 ? 1 : 0);
+            + (!matchingQuiz.getMatchPairs().isEmpty() ? 1 : 0);
     return QuizSessionDetailResponse.builder()
         .id(quizSession.getId())
+        .quizId(quizSession.getQuizId())
         .teacher(teacherResponse)
         .startTime(quizSession.getStartTime())
         .totalQuestions(totalQuestions)
         .status(quizSession.getStatus())
         .build();
+  }
+
+  @Override
+  public void startQuizSession(String quizSessionId) {
+    CustomUserDetail userDetail = SecurityUtils.getUserDetail();
+    if (userDetail == null) {
+        throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
+    }
+    QuizSession quizSession = quizSessionRepository
+            .findById(quizSessionId)
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    if (!quizSession.getTeacherId().equals(userDetail.getUser().getId())) {
+      throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
+    }
+    if (quizSession.getStatus() != SessionStatus.LOBBY) {
+      throw new QuizException(ErrorCode.MESSAGE_INVALID_SESSION_STATUS);
+    }
+    quizSession.setStatus(SessionStatus.ACTIVE);
+    quizSession.setStartTime(LocalDateTime.now());
+    quizSessionRepository.save(quizSession);
+    webSocketPublisher.publishStartExam(quizSessionId);
+    log.info("Quiz session {} started by teacher {}", quizSessionId, userDetail.getUsername());
   }
 }

@@ -11,7 +11,7 @@ import com.tkt.quizedu.data.collection.MultipleChoiceQuiz;
 @Repository
 public interface MultipleChoiceQuizRepository extends BaseRepository<MultipleChoiceQuiz, String> {
   // Define any additional methods specific to MultipleChoiceQuizRepository if needed
-  MultipleChoiceQuiz findByQuizId(String quizId);
+  Optional<MultipleChoiceQuiz> findByQuizId(String quizId);
 
   Optional<MultipleChoiceQuiz> findByQuizSessionId(String quizSessionId);
 

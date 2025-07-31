@@ -19,19 +19,12 @@ import com.tkt.quizedu.data.dto.response.PracticeResponse;
 import com.tkt.quizedu.data.dto.response.QuizResponse;
 import com.tkt.quizedu.data.dto.response.SuccessApiResponse;
 import com.tkt.quizedu.service.quiz.IQuizService;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping(EndpointConstant.ENDPOINT_QUIZ)
@@ -130,10 +123,12 @@ public class QuizController {
   }
 
   // Additional endpoints for matching quizzes, etc. can be added here
-  @PostMapping(value="/matching-quizzes/{quizId}/questions", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PostMapping(
+      value = "/matching-quizzes/{quizId}/questions",
+      consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @ResponseStatus(HttpStatus.OK)
   SuccessApiResponse<QuizResponse> addMatchingQuizQuestion(
-      @PathVariable String quizId,  @ModelAttribute MatchingQuizForm form) {
+      @PathVariable String quizId, @ModelAttribute MatchingQuizForm form) {
     QuizResponse response = quizService.addMatchingQuizQuestion(quizId, form.getQuestions());
     return SuccessApiResponse.<QuizResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
@@ -155,11 +150,12 @@ public class QuizController {
         .build();
   }
 
-  @PutMapping(value = "/matching-quizzes/{quizId}/questions", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PutMapping(
+      value = "/matching-quizzes/{quizId}/questions",
+      consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @ResponseStatus(HttpStatus.OK)
   SuccessApiResponse<QuizResponse> updateMatchingQuizQuestion(
-      @PathVariable String quizId,
-      @ModelAttribute @Valid UpdateMatchingQuestionRequest request) {
+      @PathVariable String quizId, @ModelAttribute @Valid UpdateMatchingQuestionRequest request) {
     QuizResponse response = quizService.updateMatchingQuizQuestion(quizId, request);
     return SuccessApiResponse.<QuizResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())

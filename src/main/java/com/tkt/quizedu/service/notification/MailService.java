@@ -50,12 +50,7 @@ public class MailService {
       variables.put("code", code);
       variables.put("supportEmail", supportEmail);
 
-      sendEmail(
-              email,
-              "Verification for Your QuizEdu Account",
-              "confirm-account.html",
-              variables
-      );
+      sendEmail(email, "Verification for Your QuizEdu Account", "confirm-account.html", variables);
     } catch (Exception e) {
       log.error("Failed to send confirmation email: {}", e.getMessage(), e);
     }
@@ -76,12 +71,7 @@ public class MailService {
       variables.put("classroomName", classroomName);
       variables.put("supportEmail", supportEmail);
 
-      sendEmail(
-              emailsString,
-              "Your Class Code for QuizEdu",
-              "class-code-email.html",
-              variables
-      );
+      sendEmail(emailsString, "Your Class Code for QuizEdu", "class-code-email.html", variables);
     } catch (Exception e) {
       log.error("Failed to send class code email: {}", e.getMessage(), e);
     }
@@ -101,11 +91,7 @@ public class MailService {
       variables.put("supportEmail", supportEmail);
 
       sendEmail(
-              emailsString,
-              "Access Code for Quiz: " + quizName,
-              "access-code-email.html",
-              variables
-      );
+          emailsString, "Access Code for Quiz: " + quizName, "access-code-email.html", variables);
     } catch (Exception e) {
       log.error("Failed to send access code email: {}", e.getMessage(), e);
     }
@@ -116,8 +102,9 @@ public class MailService {
     return index >= 0 ? part.substring(index + 1) : "";
   }
 
-  private void sendEmail(String recipients, String subject, String template, Map<String, Object> variables)
-          throws MessagingException, UnsupportedEncodingException {
+  private void sendEmail(
+      String recipients, String subject, String template, Map<String, Object> variables)
+      throws MessagingException, UnsupportedEncodingException {
     MimeMessage mimeMessage = mailSender.createMimeMessage();
     MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 

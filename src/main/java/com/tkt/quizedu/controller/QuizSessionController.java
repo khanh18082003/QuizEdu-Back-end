@@ -1,6 +1,7 @@
 package com.tkt.quizedu.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.tkt.quizedu.component.Translator;
@@ -49,14 +50,13 @@ public class QuizSessionController {
 
 
   @PostMapping("/joinQuizSession")
-  public SuccessApiResponse<Boolean> joinQuizSession(
+  public SuccessApiResponse<Void> joinQuizSession(
       @RequestBody JoinQuizSessionRequest joinQuizSessionRequest) {
-    Boolean response = quizSessionService.joinQuizSession(joinQuizSessionRequest.accessCode());
-    return SuccessApiResponse.<Boolean>builder()
+    quizSessionService.joinQuizSession(joinQuizSessionRequest.accessCode());
+    return SuccessApiResponse.<Void>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
-        .data(response)
         .build();
   }
 
@@ -94,6 +94,17 @@ public class QuizSessionController {
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .data(response)
+        .build();
+  }
+
+  @PostMapping("/start/{quizSessionId}")
+  @PreAuthorize("hasRole('TEACHER')")
+  SuccessApiResponse<Void> startQuizSession(@PathVariable String quizSessionId) {
+    quizSessionService.startQuizSession(quizSessionId);
+    return SuccessApiResponse.<Void>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .build();
   }
 }
