@@ -18,6 +18,7 @@ import lombok.experimental.FieldDefaults;
 @Builder
 public class QuizSessionDetailResponse implements Serializable {
   String id;
+  String quizId;
   UserBaseResponse teacher;
   LocalDateTime startTime;
   Integer totalQuestions;

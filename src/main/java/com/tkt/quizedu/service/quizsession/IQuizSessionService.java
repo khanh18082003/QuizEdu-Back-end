@@ -9,11 +9,13 @@ import com.tkt.quizedu.data.dto.response.QuizSessionResponse;
 public interface IQuizSessionService {
   QuizSessionResponse createQuizSession(QuizSessionRequest request);
 
-  boolean joinQuizSession(String accessCode);
+  void joinQuizSession(String accessCode);
 
   int submitQuizSession(SubmitQuizRequest request);
 
   HistoryQuizSessionResponse getQuizSessionHistory(String quizSessionId, String userId);
 
   QuizSessionDetailResponse getQuizSessionDetail(String quizSessionId);
+
+  void startQuizSession(String quizSessionId);
 }

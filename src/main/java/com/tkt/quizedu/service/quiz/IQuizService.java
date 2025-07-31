@@ -42,8 +42,7 @@ public interface IQuizService {
 
   void deleteMatchingQuizQuestion(String quizId, List<UUID> request);
 
-  QuizResponse updateMatchingQuizQuestion(
-      String quizId, UpdateMatchingQuestionRequest request);
+  QuizResponse updateMatchingQuizQuestion(String quizId, UpdateMatchingQuestionRequest request);
 
   QuizResponse addQuizQuestion(String quizId, AddQuizRequest request);
 
