@@ -48,6 +48,7 @@ public class QuizSessionController {
         .build();
   }
 
+
   @PostMapping("/joinQuizSession")
   public SuccessApiResponse<Void> joinQuizSession(
       @RequestBody JoinQuizSessionRequest joinQuizSessionRequest) {

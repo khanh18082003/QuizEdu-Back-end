@@ -33,4 +33,6 @@ public interface IClassRoomService {
       String classRoomId, int page, int pageSize);
 
   void inviteStudentsToClassRoom(InviteStudentsToClassRoomRequest inviteStudentsToClassRoomRequest);
+
+  void removeStudentFromClassRoom(String classRoomId, String studentId);
 }
