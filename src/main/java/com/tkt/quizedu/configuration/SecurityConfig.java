@@ -45,11 +45,8 @@ public class SecurityConfig {
     "/auth/resend-code",
     "/auth/forgot-password",
     "/auth/outbound/authentication",
-    "/classrooms",
-    "/quizzes",
-    "/quizzes/**",
-    "/quiz-sessions/**",
-    "/quiz-sessions"
+    "/ws-join-quiz-session/**",
+    "/ws-start-exam/**",
   };
 
   @Bean

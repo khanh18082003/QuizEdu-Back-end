@@ -3,10 +3,11 @@ package com.tkt.quizedu.service.quizsession;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tkt.quizedu.component.WebSocketPublisher;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.tkt.quizedu.component.WebSocketPublisher;
 import com.tkt.quizedu.data.collection.*;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.constant.SessionStatus;
@@ -28,10 +29,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
-import java.time.LocalDateTime;
-import java.util.List;
-
 
 @Service
 @RequiredArgsConstructor
@@ -91,9 +88,8 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
     QuizSession quizSession =
         quizSessionRepository.findByAccessCodeAndStatus(accessCode, SessionStatus.LOBBY);
 
-    if (quizSession.getParticipants().stream()
-        .anyMatch(p -> p.getUserId().equals(user.getId()))) {
-        throw new QuizException(ErrorCode.MESSAGE_ALREADY_JOINED);
+    if (quizSession.getParticipants().stream().anyMatch(p -> p.getUserId().equals(user.getId()))) {
+      throw new QuizException(ErrorCode.MESSAGE_ALREADY_JOINED);
     }
 
     quizSession
@@ -101,7 +97,8 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
         .add(new QuizSession.Participant(SecurityUtils.getUserDetail().getUser().getId()));
     quizSessionRepository.save(quizSession);
 
-    webSocketPublisher.publishJoinQuizSession(quizSession.getId(), userMapper.toUserBaseResponse(user));
+    webSocketPublisher.publishJoinQuizSession(
+        quizSession.getId(), userMapper.toUserBaseResponse(user));
   }
 
   @Override
@@ -180,9 +177,10 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
   public void startQuizSession(String quizSessionId) {
     CustomUserDetail userDetail = SecurityUtils.getUserDetail();
     if (userDetail == null) {
-        throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
+      throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
     }
-    QuizSession quizSession = quizSessionRepository
+    QuizSession quizSession =
+        quizSessionRepository
             .findById(quizSessionId)
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     if (!quizSession.getTeacherId().equals(userDetail.getUser().getId())) {

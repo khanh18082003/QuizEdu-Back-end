@@ -140,13 +140,13 @@ public class ClassRoomController {
   }
 
   @DeleteMapping("/{classRoomId}/students/{studentId}")
-    SuccessApiResponse<Void> removeStudentFromClassRoom(
-        @PathVariable String classRoomId, @PathVariable String studentId) {
-        classRoomService.removeStudentFromClassRoom(classRoomId, studentId);
-        return SuccessApiResponse.<Void>builder()
-            .code(ErrorCode.MESSAGE_SUCCESS.getCode())
-            .status(HttpStatus.OK.value())
-            .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
-            .build();
-    }
+  SuccessApiResponse<Void> removeStudentFromClassRoom(
+      @PathVariable String classRoomId, @PathVariable String studentId) {
+    classRoomService.removeStudentFromClassRoom(classRoomId, studentId);
+    return SuccessApiResponse.<Void>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
+  }
 }

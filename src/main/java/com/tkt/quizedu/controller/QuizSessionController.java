@@ -48,7 +48,6 @@ public class QuizSessionController {
         .build();
   }
 
-
   @PostMapping("/joinQuizSession")
   public SuccessApiResponse<Void> joinQuizSession(
       @RequestBody JoinQuizSessionRequest joinQuizSessionRequest) {
@@ -97,7 +96,7 @@ public class QuizSessionController {
         .build();
   }
 
-  @PostMapping("/start/{quizSessionId}")
+  @PutMapping("/start/{quizSessionId}")
   @PreAuthorize("hasRole('TEACHER')")
   SuccessApiResponse<Void> startQuizSession(@PathVariable String quizSessionId) {
     quizSessionService.startQuizSession(quizSessionId);

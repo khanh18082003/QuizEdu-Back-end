@@ -111,8 +111,8 @@ public class MailService {
     helper.setFrom(from, "QuizEdu Support");
 
     // Handle multiple recipients
-    if (recipients.contains(";")) {
-      helper.setTo(InternetAddress.parse(recipients.replace(";", ",")));
+    if (recipients.contains(",")) {
+      helper.setTo(InternetAddress.parse(recipients));
       log.info("Sending email to multiple recipients: {}", recipients);
     } else {
       helper.setTo(recipients);

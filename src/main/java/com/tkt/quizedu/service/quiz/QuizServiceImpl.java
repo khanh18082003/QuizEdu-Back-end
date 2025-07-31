@@ -103,9 +103,7 @@ public class QuizServiceImpl implements IQuizService {
             .map(
                 quiz -> {
                   MultipleChoiceQuiz multipleChoiceQuiz =
-                      multipleChoiceQuizRepository
-                          .findByQuizId(quiz.getId())
-                          .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+                      multipleChoiceQuizRepository.findByQuizId(quiz.getId()).orElse(null);
                   MatchingQuiz matchingQuiz = matchingQuizRepository.findByQuizId(quiz.getId());
                   return QuizResponse.builder()
                       .quiz(quiz)
@@ -136,9 +134,7 @@ public class QuizServiceImpl implements IQuizService {
     Quiz quiz =
         quizRepository.findById(id).orElseThrow(() -> new RuntimeException("Quiz not found"));
     MultipleChoiceQuiz multipleChoiceQuiz =
-        multipleChoiceQuizRepository
-            .findByQuizId(quiz.getId())
-            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+        multipleChoiceQuizRepository.findByQuizId(quiz.getId()).orElse(null);
     MatchingQuiz matchingQuiz = matchingQuizRepository.findByQuizId(quiz.getId());
     // Nếu có các loại quiz khác, thêm logic lấy tương ứng
     return QuizResponse.builder()
@@ -158,9 +154,7 @@ public class QuizServiceImpl implements IQuizService {
         quizRepository.findById(id).orElseThrow(() -> new RuntimeException("Quiz not found"));
     if (multipleChoiceQuizRepository.findByQuizId(quiz.getId()) != null) {
       multipleChoiceQuizRepository.delete(
-          multipleChoiceQuizRepository
-              .findByQuizId(quiz.getId())
-              .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID)));
+          multipleChoiceQuizRepository.findByQuizId(quiz.getId()).orElse(null));
     }
     if (matchingQuizRepository.findByQuizId(quiz.getId()) != null) {
       matchingQuizRepository.delete(matchingQuizRepository.findByQuizId(quiz.getId()));
@@ -176,9 +170,7 @@ public class QuizServiceImpl implements IQuizService {
     Quiz quiz =
         quizRepository.findById(quizId).orElseThrow(() -> new RuntimeException("Quiz not found"));
     MultipleChoiceQuiz multipleChoiceQuiz =
-        multipleChoiceQuizRepository
-            .findByQuizId(quizId)
-            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+        multipleChoiceQuizRepository.findByQuizId(quizId).orElse(null);
     List<MultipleChoiceQuiz.Question> newQuestions =
         questions.stream()
             .map(
@@ -206,9 +198,7 @@ public class QuizServiceImpl implements IQuizService {
   @Override
   public void deleteMultipleChoiceQuizQuestion(String quizId, List<UUID> request) {
     MultipleChoiceQuiz multipleChoiceQuiz =
-        multipleChoiceQuizRepository
-            .findByQuizId(quizId)
-            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+        multipleChoiceQuizRepository.findByQuizId(quizId).orElse(null);
 
     int beforeSize = multipleChoiceQuiz.getQuestions().size();
 
@@ -234,9 +224,7 @@ public class QuizServiceImpl implements IQuizService {
         quizRepository.findById(quizId).orElseThrow(() -> new RuntimeException("Quiz not found"));
 
     MultipleChoiceQuiz multipleChoiceQuiz =
-        multipleChoiceQuizRepository
-            .findByQuizId(quizId)
-            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+        multipleChoiceQuizRepository.findByQuizId(quizId).orElse(null);
 
     List<MultipleChoiceQuiz.Question> originalQuestions = multipleChoiceQuiz.getQuestions();
 
@@ -278,9 +266,7 @@ public class QuizServiceImpl implements IQuizService {
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     String quizId = quizSession.getQuizId();
     MultipleChoiceQuiz multipleChoiceQuiz =
-        multipleChoiceQuizRepository
-            .findByQuizId(quizId)
-            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+        multipleChoiceQuizRepository.findByQuizId(quizId).orElse(null);
 
     List<MultipleChoiceQuiz.Question> questions = multipleChoiceQuiz.getQuestions();
     if (questions == null || questions.isEmpty()) {
@@ -356,9 +342,7 @@ public class QuizServiceImpl implements IQuizService {
             .orElseThrow(() -> new RuntimeException("Quiz session not found"));
     String quizId = quizSession.getQuizId();
     MultipleChoiceQuiz multipleChoiceQuiz =
-        multipleChoiceQuizRepository
-            .findByQuizId(quizId)
-            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+        multipleChoiceQuizRepository.findByQuizId(quizId).orElse(null);
 
     List<MultipleChoiceQuiz.Question> questions = multipleChoiceQuiz.getQuestions();
     if (questions == null || questions.isEmpty()) {
@@ -648,9 +632,7 @@ public class QuizServiceImpl implements IQuizService {
         .quiz(quiz)
         .multipleChoiceQuiz(
             multipleChoiceQuizMapper.toMultipleChoiceQuizResponse(
-                multipleChoiceQuizRepository
-                    .findByQuizId(quizId)
-                    .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID))))
+                multipleChoiceQuizRepository.findByQuizId(quizId).orElse(null)))
         .matchingQuiz(
             matchingQuizMapper.toMatchingQuizResponse(matchingQuizRepository.findByQuizId(quizId)))
         .build();
@@ -664,10 +646,7 @@ public class QuizServiceImpl implements IQuizService {
     List<MatchingQuizResponse.MatchPairResponse> matchPairs = new ArrayList<>();
 
     for (String quizId : request.quizIDs()) {
-      MultipleChoiceQuiz mcQuiz =
-          multipleChoiceQuizRepository
-              .findByQuizId(quizId)
-              .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+      MultipleChoiceQuiz mcQuiz = multipleChoiceQuizRepository.findByQuizId(quizId).orElse(null);
       if (mcQuiz != null) {
         multipleChoiceQuiz = multipleChoiceQuizMapper.toMultipleChoiceQuizResponse(mcQuiz);
         questions.addAll(multipleChoiceQuiz.getQuestions());

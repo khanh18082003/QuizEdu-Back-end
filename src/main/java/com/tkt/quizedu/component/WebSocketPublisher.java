@@ -1,8 +1,9 @@
 package com.tkt.quizedu.component;
 
-import com.tkt.quizedu.data.dto.response.UserBaseResponse;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+
+import com.tkt.quizedu.data.dto.response.UserBaseResponse;
 
 import lombok.RequiredArgsConstructor;
 

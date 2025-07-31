@@ -226,7 +226,6 @@ public class ClassRoomServiceImpl implements IClassRoomService {
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     student.getClassIds().remove(classRoomId);
     userRepository.save(student);
-
   }
 
   public Boolean joinClassRoom(String classCode) {
