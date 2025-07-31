@@ -211,6 +211,24 @@ public class ClassRoomServiceImpl implements IClassRoomService {
     log.info("Invited students to classroom with ID: {}", classRoom.getId());
   }
 
+  @Override
+  public void removeStudentFromClassRoom(String classRoomId, String studentId) {
+    ClassRoom classRoom =
+        classRoomRepository
+            .findById(classRoomId)
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    classRoom.getStudentIds().remove(studentId);
+    classRoomRepository.save(classRoom);
+    // Remove the classRoomId from the student's classIds
+    User student =
+        userRepository
+            .findById(studentId)
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    student.getClassIds().remove(classRoomId);
+    userRepository.save(student);
+
+  }
+
   public Boolean joinClassRoom(String classCode) {
     CustomUserDetail userDetail = SecurityUtils.getUserDetail();
     User user = userDetail.getUser();

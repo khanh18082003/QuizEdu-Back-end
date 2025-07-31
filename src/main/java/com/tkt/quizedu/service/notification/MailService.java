@@ -87,7 +87,7 @@ public class MailService {
     }
   }
 
-  @KafkaListener(topics = "send-access-code-to-email", groupId = "quizedu-group")
+  @KafkaListener(topics = "send-access-code-to-emails", groupId = "quizedu-group")
   public void sendAccessCodeToEmail(String message) {
     try {
       String[] parts = message.split(";");
