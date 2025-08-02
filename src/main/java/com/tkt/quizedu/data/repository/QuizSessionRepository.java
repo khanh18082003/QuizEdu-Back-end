@@ -1,6 +1,7 @@
 package com.tkt.quizedu.data.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.Aggregation;
@@ -13,7 +14,7 @@ import com.tkt.quizedu.data.dto.response.QuizDetailResponse;
 
 @Repository
 public interface QuizSessionRepository extends BaseRepository<QuizSession, String> {
-  QuizSession findByAccessCodeAndStatus(String accessCode, SessionStatus status);
+  Optional<QuizSession> findByAccessCodeAndStatus(String accessCode, SessionStatus status);
 
   boolean existsByAccessCodeAndStatus(String accessCode, SessionStatus status);
 
@@ -23,6 +24,7 @@ public interface QuizSessionRepository extends BaseRepository<QuizSession, Strin
         "{ '$addFields': { 'quizObjectId': { '$toObjectId': '$quiz_id' } } }",
         "{ '$lookup': { 'from': 'quiz', 'localField': 'quizObjectId', 'foreignField': '_id', 'as': 'quiz' } }",
         "{ '$unwind': { 'path': '$quiz', 'preserveNullAndEmptyArrays': false } }",
+        "{'$sort': { 'created_at': -1 } }",
         "{ '$project': { "
             + "'id': '$quiz._id', "
             + "'name': '$quiz.name', "

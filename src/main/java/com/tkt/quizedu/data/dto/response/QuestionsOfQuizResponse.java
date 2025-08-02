@@ -1,21 +1,21 @@
 package com.tkt.quizedu.data.dto.response;
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Getter
-@Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Getter
+@Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Builder
-public class QuizBaseResponse {
-  String id;
-  String name;
-  String description;
-  boolean isActive;
-  boolean isPublic;
+public class QuestionsOfQuizResponse implements Serializable {
+  QuizBaseResponse quiz;
+  MultipleChoiceV2Response multipleChoiceQuiz;
+  MatchingQuizDetailResponse matchingQuiz;
 }

@@ -1,6 +1,7 @@
 package com.tkt.quizedu.service.quiz;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -674,6 +675,58 @@ public class QuizServiceImpl implements IQuizService {
     return PracticeResponse.builder()
         .multipleChoiceQuiz(multipleChoiceQuiz)
         .matchingQuiz(matchingQuiz)
+        .build();
+  }
+
+  @Override
+  public QuestionsOfQuizResponse getAllQuestionsByQuizId(String id) {
+    Quiz quiz =
+        quizRepository
+            .findById(id)
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    MultipleChoiceQuiz multipleChoiceQuiz =
+        multipleChoiceQuizRepository.findByQuizId(quiz.getId()).orElse(null);
+    if (multipleChoiceQuiz != null) {
+      Collections.shuffle(multipleChoiceQuiz.getQuestions());
+    }
+    MatchingQuiz matchingQuiz = matchingQuizRepository.findByQuizId(quiz.getId());
+    MatchingQuizDetailResponse matchingQuizResponse =
+        MatchingQuizDetailResponse.builder()
+            .id(matchingQuiz.getId())
+            .quizId(matchingQuiz.getQuizId())
+            .timeLimit(matchingQuiz.getTimeLimit())
+            .itemA(
+                new ArrayList<>(
+                    matchingQuiz.getMatchPairs().stream()
+                        .map(
+                            pair ->
+                                MatchingQuizDetailResponse.MatchItemResponse.builder()
+                                    .id(pair.getId())
+                                    .content(pair.getItemA().getContent())
+                                    .matchingType(pair.getItemA().getMatchingType())
+                                    .build())
+                        .toList()))
+            .itemB(
+                new ArrayList<>(
+                    matchingQuiz.getMatchPairs().stream()
+                        .map(
+                            pair ->
+                                MatchingQuizDetailResponse.MatchItemResponse.builder()
+                                    .content(pair.getItemB().getContent())
+                                    .matchingType(pair.getItemB().getMatchingType())
+                                    .build())
+                        .toList()))
+            .build();
+    Collections.shuffle(matchingQuizResponse.getItemA());
+    Collections.shuffle(matchingQuizResponse.getItemB());
+    // Nếu có các loại quiz khác, thêm logic lấy tương ứng
+    return QuestionsOfQuizResponse.builder()
+        .quiz(quizMapper.toQuizBaseResponse(quiz))
+        .multipleChoiceQuiz(
+            multipleChoiceQuiz != null
+                ? multipleChoiceQuizMapper.toMultipleChoiceV2Response(multipleChoiceQuiz)
+                : null)
+        .matchingQuiz(matchingQuizResponse)
         .build();
   }
 }

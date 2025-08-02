@@ -14,10 +14,7 @@ import com.tkt.quizedu.component.Translator;
 import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.dto.request.*;
-import com.tkt.quizedu.data.dto.response.PaginationResponse;
-import com.tkt.quizedu.data.dto.response.PracticeResponse;
-import com.tkt.quizedu.data.dto.response.QuizResponse;
-import com.tkt.quizedu.data.dto.response.SuccessApiResponse;
+import com.tkt.quizedu.data.dto.response.*;
 import com.tkt.quizedu.service.quiz.IQuizService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -67,6 +64,16 @@ public class QuizController {
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .data(quizService.getById(id))
+        .build();
+  }
+
+  @GetMapping("/{id}/questions")
+  SuccessApiResponse<QuestionsOfQuizResponse> getAllQuestionsByQuizId(@PathVariable String id) {
+    return SuccessApiResponse.<QuestionsOfQuizResponse>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(quizService.getAllQuestionsByQuizId(id))
         .build();
   }
 
