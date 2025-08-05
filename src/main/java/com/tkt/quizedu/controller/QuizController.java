@@ -197,4 +197,15 @@ public class QuizController {
         .data(response)
         .build();
   }
+  @PutMapping("/{quizId}")
+  @ResponseStatus(HttpStatus.OK)
+  SuccessApiResponse<Void> updateQuiz(@PathVariable String quizId,
+                                              @RequestBody @Valid UpdateQuizRequest request) {
+    quizService.updateQuiz(quizId, request);
+    return SuccessApiResponse.<Void>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
+  }
 }

@@ -47,4 +47,6 @@ public interface IQuizService {
   QuizResponse addQuizQuestion(String quizId, AddQuizRequest request);
 
   PracticeResponse getQuizPractice(PracticeRequest request);
+
+  void updateQuiz(String quizId, UpdateQuizRequest request);
 }
