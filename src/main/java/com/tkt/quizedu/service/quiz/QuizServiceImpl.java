@@ -3,6 +3,7 @@ package com.tkt.quizedu.service.quiz;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -152,10 +153,15 @@ public class QuizServiceImpl implements IQuizService {
   @Override
   public void delete(String id) {
     Quiz quiz =
-        quizRepository.findById(id).orElseThrow(() -> new RuntimeException("Quiz not found"));
-    if (multipleChoiceQuizRepository.findByQuizId(quiz.getId()) != null) {
+        quizRepository.findById(id).orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    if (!quiz.getClassIds().isEmpty()) {
+      quiz.setActive(false);
+      quizRepository.save(quiz);
+      throw new QuizException(ErrorCode.MESSAGE_DELETE_QUIZ);
+    }
+    if (multipleChoiceQuizRepository.findByQuizId(quiz.getId()).isPresent()) {
       multipleChoiceQuizRepository.delete(
-          multipleChoiceQuizRepository.findByQuizId(quiz.getId()).orElse(null));
+              Objects.requireNonNull(multipleChoiceQuizRepository.findByQuizId(quiz.getId()).orElse(null)));
     }
     if (matchingQuizRepository.findByQuizId(quiz.getId()) != null) {
       matchingQuizRepository.delete(matchingQuizRepository.findByQuizId(quiz.getId()));
@@ -678,6 +684,25 @@ public class QuizServiceImpl implements IQuizService {
         .build();
   }
 
+  @Override
+  public void updateQuiz(String quizId, UpdateQuizRequest request) {
+    Quiz quiz =
+        quizRepository.findById(quizId).orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    if (request.name() != null) {
+      quiz.setName(request.name());
+    }
+    if (request.description() != null) {
+      quiz.setDescription(request.description());
+    }
+    if (request.isActive() != quiz.isActive()) {
+        quiz.setActive(request.isActive());
+    }
+    if (request.isPublic() != quiz.isPublic()) {
+        quiz.setPublic(request.isPublic());
+    }
+    quizRepository.save(quiz);
+  }
+  
   @Override
   public QuestionsOfQuizResponse getAllQuestionsByQuizId(String id) {
     Quiz quiz =

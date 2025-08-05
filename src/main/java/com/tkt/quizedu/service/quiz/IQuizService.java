@@ -49,5 +49,7 @@ public interface IQuizService {
 
   PracticeResponse getQuizPractice(PracticeRequest request);
 
+  void updateQuiz(String quizId, UpdateQuizRequest request);
+  
   QuestionsOfQuizResponse getAllQuestionsByQuizId(String id);
 }

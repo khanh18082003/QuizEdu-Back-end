@@ -264,12 +264,17 @@ public class ClassRoomServiceImpl implements IClassRoomService {
     if (assignedQuizIds.contains(quizId)) {
       return false;
     }
+    Quiz quiz =
+        quizRepository
+            .findById(quizId)
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    if (!quiz.isActive()) {
+      throw new QuizException(ErrorCode.MESSAGE_QUIZ_NOT_ACTIVE);
+    }
     assignedQuizIds.add(quizId);
     classRoom.setAssignedQuizIds(assignedQuizIds);
     classRoomRepository.save(classRoom);
     // Import Quiz and add the classRoomId to the quiz's classIds
-    Quiz quiz =
-        quizRepository.findById(quizId).orElseThrow(() -> new RuntimeException("Quiz not found"));
     List<String> classRoomIds = quiz.getClassIds();
     if (!classRoomIds.contains(classRoomId)) {
       classRoomIds.add(classRoomId);
