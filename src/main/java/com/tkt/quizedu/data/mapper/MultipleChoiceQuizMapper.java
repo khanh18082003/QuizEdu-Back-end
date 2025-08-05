@@ -10,6 +10,7 @@ import org.mapstruct.MappingTarget;
 import com.tkt.quizedu.data.collection.MultipleChoiceQuiz;
 import com.tkt.quizedu.data.dto.request.MultipleChoiceQuizRequest;
 import com.tkt.quizedu.data.dto.response.MultipleChoiceQuizResponse;
+import com.tkt.quizedu.data.dto.response.MultipleChoiceV2Response;
 
 @Mapper(componentModel = "spring")
 public interface MultipleChoiceQuizMapper {
@@ -29,4 +30,6 @@ public interface MultipleChoiceQuizMapper {
   }
 
   MultipleChoiceQuizResponse toMultipleChoiceQuizResponse(MultipleChoiceQuiz quiz);
+
+  MultipleChoiceV2Response toMultipleChoiceV2Response(MultipleChoiceQuiz quiz);
 }

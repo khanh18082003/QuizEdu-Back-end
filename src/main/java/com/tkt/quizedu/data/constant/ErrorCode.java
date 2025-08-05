@@ -30,6 +30,7 @@ public enum ErrorCode {
   MESSAGE_INVALID_SESSION_STATUS("M111", HttpStatus.BAD_REQUEST),
   MESSAGE_QUIZ_NOT_ACTIVE("M112", HttpStatus.BAD_REQUEST),
   MESSAGE_DELETE_QUIZ("M113", HttpStatus.BAD_REQUEST),
+  MESSAGE_QUIZ_SESSION_ACTIVE("M114", HttpStatus.BAD_REQUEST),
   ;
 
   private final String code;

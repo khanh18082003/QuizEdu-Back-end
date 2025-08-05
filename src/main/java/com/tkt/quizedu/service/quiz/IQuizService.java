@@ -8,6 +8,7 @@ import com.tkt.quizedu.data.collection.MultipleChoiceQuiz;
 import com.tkt.quizedu.data.dto.request.*;
 import com.tkt.quizedu.data.dto.response.PaginationResponse;
 import com.tkt.quizedu.data.dto.response.PracticeResponse;
+import com.tkt.quizedu.data.dto.response.QuestionsOfQuizResponse;
 import com.tkt.quizedu.data.dto.response.QuizResponse;
 
 public interface IQuizService {
@@ -49,4 +50,6 @@ public interface IQuizService {
   PracticeResponse getQuizPractice(PracticeRequest request);
 
   void updateQuiz(String quizId, UpdateQuizRequest request);
+  
+  QuestionsOfQuizResponse getAllQuestionsByQuizId(String id);
 }

@@ -18,4 +18,6 @@ public interface IQuizSessionService {
   QuizSessionDetailResponse getQuizSessionDetail(String quizSessionId);
 
   void startQuizSession(String quizSessionId);
+
+  void closeQuizSession(String quizSessionId);
 }

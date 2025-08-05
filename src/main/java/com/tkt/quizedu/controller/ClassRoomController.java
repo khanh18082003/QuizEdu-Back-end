@@ -130,7 +130,7 @@ public class ClassRoomController {
   SuccessApiResponse<PaginationResponse<QuizDetailResponse>> getQuizSessionsByClassRoomId(
       @PathVariable String classRoomId,
       @RequestParam(name = "page", defaultValue = "1") int page,
-      @RequestParam(name = "pageSize", defaultValue = "20") int pageSize) {
+      @RequestParam(name = "pageSize", defaultValue = "5") int pageSize) {
     return SuccessApiResponse.<PaginationResponse<QuizDetailResponse>>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())

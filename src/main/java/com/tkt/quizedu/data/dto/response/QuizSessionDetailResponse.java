@@ -21,6 +21,7 @@ public class QuizSessionDetailResponse implements Serializable {
   String quizId;
   UserBaseResponse teacher;
   LocalDateTime startTime;
+  LocalDateTime endTime;
   Integer totalQuestions;
   SessionStatus status;
 }

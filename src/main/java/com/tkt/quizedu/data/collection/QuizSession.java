@@ -33,6 +33,7 @@ public class QuizSession extends StringIdentityCollection {
   SessionStatus status;
   String accessCode;
   LocalDateTime startTime;
+  LocalDateTime endTime;
   @CreatedDate LocalDateTime createdAt;
   @LastModifiedDate LocalDateTime updatedAt;
   @Builder.Default List<Participant> participants = new ArrayList<>();

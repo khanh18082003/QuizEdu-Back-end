@@ -106,4 +106,15 @@ public class QuizSessionController {
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .build();
   }
+
+  @PutMapping("/close/{quizSessionId}")
+  @PreAuthorize("hasRole('TEACHER')")
+  SuccessApiResponse<Void> closeQuizSession(@PathVariable String quizSessionId) {
+    quizSessionService.closeQuizSession(quizSessionId);
+    return SuccessApiResponse.<Void>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
+  }
 }

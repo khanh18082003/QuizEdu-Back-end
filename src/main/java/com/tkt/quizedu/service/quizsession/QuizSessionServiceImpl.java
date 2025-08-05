@@ -86,7 +86,9 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
     }
     User user = userDetail.getUser();
     QuizSession quizSession =
-        quizSessionRepository.findByAccessCodeAndStatus(accessCode, SessionStatus.LOBBY);
+        quizSessionRepository
+            .findByAccessCodeAndStatus(accessCode, SessionStatus.LOBBY)
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_QUIZ_SESSION_ACTIVE));
 
     if (quizSession.getParticipants().stream().anyMatch(p -> p.getUserId().equals(user.getId()))) {
       throw new QuizException(ErrorCode.MESSAGE_ALREADY_JOINED);
@@ -194,5 +196,28 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
     quizSessionRepository.save(quizSession);
     webSocketPublisher.publishStartExam(quizSessionId);
     log.info("Quiz session {} started by teacher {}", quizSessionId, userDetail.getUsername());
+  }
+
+  @Override
+  public void closeQuizSession(String quizSessionId) {
+    CustomUserDetail userDetail = SecurityUtils.getUserDetail();
+    if (userDetail == null) {
+      throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
+    }
+    QuizSession quizSession =
+        quizSessionRepository
+            .findById(quizSessionId)
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    if (!quizSession.getTeacherId().equals(userDetail.getUser().getId())) {
+      throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
+    }
+    if (quizSession.getStatus() != SessionStatus.ACTIVE) {
+      throw new QuizException(ErrorCode.MESSAGE_INVALID_SESSION_STATUS);
+    }
+    quizSession.setStatus(SessionStatus.COMPLETED);
+    quizSession.setEndTime(LocalDateTime.now());
+    quizSessionRepository.save(quizSession);
+    webSocketPublisher.publishCloseQuizSession(quizSessionId);
+    log.info("Quiz session {} closed by teacher {}", quizSessionId, userDetail.getUsername());
   }
 }

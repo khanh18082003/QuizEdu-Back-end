@@ -21,4 +21,9 @@ public class WebSocketPublisher {
     String destination = "/topic/join-quiz-session/" + sessionId;
     simpMessagingTemplate.convertAndSend(destination, student);
   }
+
+  public void publishCloseQuizSession(String sessionId) {
+    String destination = "/topic/close-quiz-session/" + sessionId;
+    simpMessagingTemplate.convertAndSend(destination, true);
+  }
 }
