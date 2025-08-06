@@ -7,4 +7,5 @@ public class EndpointConstant {
   public static final String ENDPOINT_QUIZ = "/quizzes";
   public static final String ENDPOINT_MULTIPLE_CHOICE_QUIZ = "/quizzes/multiple-choice-quizzes";
   public static final String ENDPOINT_QUIZ_SESSION = "/quiz-sessions";
+  public static final String ENDPOINT_NOTIFICATION = "/notifications";
 }
