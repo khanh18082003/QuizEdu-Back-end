@@ -3,7 +3,6 @@ package com.tkt.quizedu.data.repository;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.stereotype.Repository;
 
@@ -33,10 +32,13 @@ public interface QuizSessionRepository extends BaseRepository<QuizSession, Strin
             + "'status': '$status', "
             + "'start_time': '$start_time', "
             + "'end_time': '$end_time' ,"
-            + "'created_at': '$created_at', "
+            + "'created_at': '$created_at'"
             + "} }",
-        "{ '$skip': ?#{#pageable.offset} }",
-        "{ '$limit': ?#{#pageable.pageSize} }"
+        "{ '$skip': ?1 }",
+        "{ '$limit': ?2 }"
       })
-  List<QuizDetailResponse> findAllQuizzSessionByClassId(String classId, Pageable pageable);
+  List<QuizDetailResponse> findAllQuizSessionByClassId(String classId, long offset, int limit);
+
+  @Aggregation(pipeline = {"{ '$match': { 'class_id': ?0 } }"})
+  List<QuizSession> totalQuizSessionByClassId(String classId);
 }
