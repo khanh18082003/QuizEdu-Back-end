@@ -7,6 +7,7 @@ public record QuizCreationRequest(
     String name,
     String description,
     boolean isActive,
+    boolean isPublic,
     MultipleChoiceQuizRequest multipleChoiceQuiz,
     MatchingQuizRequest matchingQuiz
     // còn các loại quiz khác

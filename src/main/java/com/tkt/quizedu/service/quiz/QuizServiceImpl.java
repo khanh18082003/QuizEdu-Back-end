@@ -54,31 +54,71 @@ public class QuizServiceImpl implements IQuizService {
   @Override
   @Transactional
   public QuizResponse save(QuizCreationRequest request) {
-    // Sua lai theo dang nhap cua giao vien
     CustomUserDetail userDetail = SecurityUtils.getUserDetail();
     Quiz quiz = quizMapper.toQuiz(request);
     quiz.setTeacherId(userDetail.getUser().getId());
 
     quiz = quizRepository.save(quiz);
     MultipleChoiceQuiz multipleChoiceQuiz = null;
-    //  Gán UUID cho từng câu hỏi nếu có
+
     if (request.multipleChoiceQuiz() != null) {
       multipleChoiceQuiz =
           multipleChoiceQuizMapper.toMultipleChoiceQuiz(request.multipleChoiceQuiz());
       multipleChoiceQuiz.setQuizId(quiz.getId());
       multipleChoiceQuizRepository.save(multipleChoiceQuiz);
     }
-    // Nếu có MatchingQuiz, map và lưu
+
     MatchingQuiz matchingQuiz = null;
     if (request.matchingQuiz() != null) {
-      matchingQuiz = matchingQuizMapper.toMatchingQuiz(request.matchingQuiz());
+      matchingQuiz = new MatchingQuiz();
       matchingQuiz.setQuizId(quiz.getId());
-      // Gán lại danh sách MatchPair nếu bạn map từng MatchPair riêng
+      matchingQuiz.setTimeLimit(request.matchingQuiz().timeLimit());
+
       List<MatchingQuiz.MatchPair> pairs =
-          matchingQuizMapper.toMatchPairList(request.matchingQuiz().questions());
+          request.matchingQuiz().questions().stream()
+              .map(
+                  req -> {
+                    MatchingQuiz.MatchPair pair = new MatchingQuiz.MatchPair();
+                    pair.setId(UUID.randomUUID());
+
+                    // Handle itemA
+                    String contentA;
+                    MatchingType typeA;
+                    if (req.getFileContentA() != null && !req.getFileContentA().isEmpty()) {
+                      contentA = s3Service.uploadFile(req.getFileContentA());
+                      typeA = MatchingType.IMAGE;
+                    } else if (req.getContentA() != null && !req.getContentA().isBlank()) {
+                      contentA = req.getContentA();
+                      typeA = MatchingType.TEXT;
+                    } else {
+                      throw new QuizException(ErrorCode.MESSAGE_INVALID_ID);
+                    }
+
+                    // Handle itemB
+                    String contentB;
+                    MatchingType typeB;
+                    if (req.getFileContentB() != null && !req.getFileContentB().isEmpty()) {
+                      contentB = s3Service.uploadFile(req.getFileContentB());
+                      typeB = MatchingType.IMAGE;
+                    } else if (req.getContentB() != null && !req.getContentB().isBlank()) {
+                      contentB = req.getContentB();
+                      typeB = MatchingType.TEXT;
+                    } else {
+                      throw new QuizException(ErrorCode.MESSAGE_INVALID_ID);
+                    }
+
+                    pair.setItemA(new MatchingQuiz.MatchItem(contentA, typeA));
+                    pair.setItemB(new MatchingQuiz.MatchItem(contentB, typeB));
+                    pair.setPoints(req.getPoints());
+
+                    return pair;
+                  })
+              .toList();
+
       matchingQuiz.setMatchPairs(pairs);
       matchingQuizRepository.save(matchingQuiz);
     }
+
     return QuizResponse.builder()
         .quiz(quiz)
         .multipleChoiceQuiz(
@@ -153,7 +193,9 @@ public class QuizServiceImpl implements IQuizService {
   @Override
   public void delete(String id) {
     Quiz quiz =
-        quizRepository.findById(id).orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+        quizRepository
+            .findById(id)
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     if (!quiz.getClassIds().isEmpty()) {
       quiz.setActive(false);
       quizRepository.save(quiz);
@@ -161,7 +203,8 @@ public class QuizServiceImpl implements IQuizService {
     }
     if (multipleChoiceQuizRepository.findByQuizId(quiz.getId()).isPresent()) {
       multipleChoiceQuizRepository.delete(
-              Objects.requireNonNull(multipleChoiceQuizRepository.findByQuizId(quiz.getId()).orElse(null)));
+          Objects.requireNonNull(
+              multipleChoiceQuizRepository.findByQuizId(quiz.getId()).orElse(null)));
     }
     if (matchingQuizRepository.findByQuizId(quiz.getId()) != null) {
       matchingQuizRepository.delete(matchingQuizRepository.findByQuizId(quiz.getId()));
@@ -687,22 +730,24 @@ public class QuizServiceImpl implements IQuizService {
   @Override
   public void updateQuiz(String quizId, UpdateQuizRequest request) {
     Quiz quiz =
-        quizRepository.findById(quizId).orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
-    if (request.name() != null) {
+        quizRepository
+            .findById(quizId)
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    if (!Objects.equals(request.name(), quiz.getName())) {
       quiz.setName(request.name());
     }
-    if (request.description() != null) {
+    if (!Objects.equals(request.description(), quiz.getDescription())) {
       quiz.setDescription(request.description());
     }
     if (request.isActive() != quiz.isActive()) {
-        quiz.setActive(request.isActive());
+      quiz.setActive(request.isActive());
     }
     if (request.isPublic() != quiz.isPublic()) {
-        quiz.setPublic(request.isPublic());
+      quiz.setPublic(request.isPublic());
     }
     quizRepository.save(quiz);
   }
-  
+
   @Override
   public QuestionsOfQuizResponse getAllQuestionsByQuizId(String id) {
     Quiz quiz =
