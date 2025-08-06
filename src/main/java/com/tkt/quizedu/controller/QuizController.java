@@ -32,10 +32,10 @@ import lombok.extern.slf4j.Slf4j;
 public class QuizController {
   IQuizService quizService;
 
-  @PostMapping
+  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
-  SuccessApiResponse<QuizResponse> save(@RequestBody @Valid QuizCreationRequest req) {
+  SuccessApiResponse<QuizResponse> save(@ModelAttribute QuizCreationRequest req) {
     return SuccessApiResponse.<QuizResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.CREATED.value())
@@ -204,10 +204,11 @@ public class QuizController {
         .data(response)
         .build();
   }
+
   @PutMapping("/{quizId}")
   @ResponseStatus(HttpStatus.OK)
-  SuccessApiResponse<Void> updateQuiz(@PathVariable String quizId,
-                                              @RequestBody @Valid UpdateQuizRequest request) {
+  SuccessApiResponse<Void> updateQuiz(
+      @PathVariable String quizId, @RequestBody @Valid UpdateQuizRequest request) {
     quizService.updateQuiz(quizId, request);
     return SuccessApiResponse.<Void>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
