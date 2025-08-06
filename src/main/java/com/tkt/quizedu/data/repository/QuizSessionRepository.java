@@ -13,7 +13,7 @@ import com.tkt.quizedu.data.dto.response.QuizDetailResponse;
 
 @Repository
 public interface QuizSessionRepository extends BaseRepository<QuizSession, String> {
-  Optional<QuizSession> findByAccessCodeAndStatus(String accessCode, SessionStatus status);
+  Optional<QuizSession> findByAccessCode(String accessCode);
 
   boolean existsByAccessCodeAndStatus(String accessCode, SessionStatus status);
 
@@ -29,6 +29,7 @@ public interface QuizSessionRepository extends BaseRepository<QuizSession, Strin
             + "'name': '$quiz.name', "
             + "'description': '$quiz.description', "
             + "'quiz_session_id': '$_id', "
+            + "'access_code': '$access_code', "
             + "'status': '$status', "
             + "'start_time': '$start_time', "
             + "'end_time': '$end_time' ,"

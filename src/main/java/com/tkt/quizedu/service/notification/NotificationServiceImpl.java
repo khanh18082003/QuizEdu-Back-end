@@ -1,25 +1,29 @@
 package com.tkt.quizedu.service.notification;
 
+import static org.apache.kafka.common.serialization.Serdes.UUID;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tkt.quizedu.data.collection.Notification;
 import com.tkt.quizedu.data.collection.User;
+import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.dto.request.NotificationRequest;
 import com.tkt.quizedu.data.dto.response.CommentResponse;
 import com.tkt.quizedu.data.dto.response.NotificationResponse;
 import com.tkt.quizedu.data.dto.response.UserBaseResponse;
 import com.tkt.quizedu.data.mapper.NotificationMapper;
+import com.tkt.quizedu.data.mapper.UserMapper;
 import com.tkt.quizedu.data.repository.ClassRoomRepository;
 import com.tkt.quizedu.data.repository.NotificationRepository;
 import com.tkt.quizedu.data.repository.UserRepository;
+import com.tkt.quizedu.exception.QuizException;
 import com.tkt.quizedu.service.s3.IS3Service;
 import com.tkt.quizedu.utils.SecurityUtils;
 
@@ -28,18 +32,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
-import static org.apache.kafka.common.serialization.Serdes.UUID;
-
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-@Slf4j(topic = "QUIZ-SERVICE")
+@Slf4j(topic = "NOTIFICATION-SERVICE")
 public class NotificationServiceImpl implements INotificationService {
   NotificationMapper notificationMapper;
   NotificationRepository notificationRepository;
   UserRepository userRepository;
   ClassRoomRepository classRoomRepository;
   IS3Service s3Service;
+  UserMapper userMapper;
 
   @Override
   @Transactional
@@ -58,19 +61,8 @@ public class NotificationServiceImpl implements INotificationService {
     User teacher =
         userRepository
             .findById(notification.getTeacherId())
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "Teacher not found with id: " + notification.getTeacherId()));
-    UserBaseResponse userBaseResponse =
-        UserBaseResponse.builder()
-            .id(teacher.getId())
-            .email(teacher.getEmail())
-            .firstName(teacher.getFirstName())
-            .lastName(teacher.getLastName())
-            .avatar(teacher.getAvatar())
-            .displayName(teacher.getDisplayName())
-            .build();
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    UserBaseResponse userBaseResponse = userMapper.toUserBaseResponse(teacher);
     return NotificationResponse.builder()
         .id(notification.getId())
         .description(notification.getDescription())
@@ -89,17 +81,8 @@ public class NotificationServiceImpl implements INotificationService {
     User teacher =
         userRepository
             .findById(userId)
-            .orElseThrow(
-                () -> new IllegalArgumentException("Teacher not found with id: " + userId));
-    UserBaseResponse userBaseResponse =
-        UserBaseResponse.builder()
-            .id(teacher.getId())
-            .email(teacher.getEmail())
-            .firstName(teacher.getFirstName())
-            .lastName(teacher.getLastName())
-            .avatar(teacher.getAvatar())
-            .displayName(teacher.getDisplayName())
-            .build();
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    UserBaseResponse userBaseResponse = userMapper.toUserBaseResponse(teacher);
     return notificationRepository
         .findById(id)
         .map(
@@ -161,19 +144,8 @@ public class NotificationServiceImpl implements INotificationService {
     User teacher =
         userRepository
             .findById(notification.getTeacherId())
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "Teacher not found with id: " + notification.getTeacherId()));
-    UserBaseResponse userBaseResponse =
-        UserBaseResponse.builder()
-            .id(teacher.getId())
-            .email(teacher.getEmail())
-            .firstName(teacher.getFirstName())
-            .lastName(teacher.getLastName())
-            .avatar(teacher.getAvatar())
-            .displayName(teacher.getDisplayName())
-            .build();
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    UserBaseResponse userBaseResponse = userMapper.toUserBaseResponse(teacher);
     // Builder response
     return NotificationResponse.builder()
         .id(notification.getId())
@@ -193,18 +165,9 @@ public class NotificationServiceImpl implements INotificationService {
     User teacher =
         userRepository
             .findById(userId)
-            .orElseThrow(
-                () -> new IllegalArgumentException("Teacher not found with id: " + userId));
-    UserBaseResponse userBaseResponse =
-        UserBaseResponse.builder()
-            .id(teacher.getId())
-            .email(teacher.getEmail())
-            .firstName(teacher.getFirstName())
-            .lastName(teacher.getLastName())
-            .avatar(teacher.getAvatar())
-            .displayName(teacher.getDisplayName())
-            .build();
-      System.out.println(notificationRepository.findAllByClassId(classId).size());
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    UserBaseResponse userBaseResponse = userMapper.toUserBaseResponse(teacher);
+    System.out.println(notificationRepository.findAllByClassId(classId).size());
     return notificationRepository.findAllByClassId(classId).stream()
         .map(
             notification ->
@@ -219,32 +182,32 @@ public class NotificationServiceImpl implements INotificationService {
                             : new ArrayList<>())
                     .createdAt(notification.getCreatedAt())
                     .updatedAt(notification.getUpdatedAt())
-                        .comments(
-                            notification.getComments() != null
-                                ? notification.getComments().stream()
-                                    .map(comment -> {
-                                        User user = userRepository.findById(comment.getUserId())
-                                                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + comment.getUserId()));
+                    .comments(
+                        notification.getComments() != null
+                            ? notification.getComments().stream()
+                                .map(
+                                    comment -> {
+                                      User user =
+                                          userRepository
+                                              .findById(comment.getUserId())
+                                              .orElseThrow(
+                                                  () ->
+                                                      new QuizException(
+                                                          ErrorCode.MESSAGE_INVALID_ID));
 
-                                        UserBaseResponse userComment = UserBaseResponse.builder()
-                                                .id(user.getId())
-                                                .email(user.getEmail())
-                                                .firstName(user.getFirstName())
-                                                .lastName(user.getLastName())
-                                                .avatar(user.getAvatar())
-                                                .displayName(user.getDisplayName())
-                                                .build();
+                                      UserBaseResponse userComment =
+                                          userMapper.toUserBaseResponse(teacher);
 
-                                        return CommentResponse.builder()
-                                                .id(comment.getId().toString())
-                                                .content(comment.getContent())
-                                                .createdAt(comment.getCreatedAt())
-                                                .updatedAt(comment.getUpdatedAt())
-                                                .user(userComment)
-                                                .build();
+                                      return CommentResponse.builder()
+                                          .id(comment.getId().toString())
+                                          .content(comment.getContent())
+                                          .createdAt(comment.getCreatedAt())
+                                          .updatedAt(comment.getUpdatedAt())
+                                          .user(userComment)
+                                          .build();
                                     })
-                                    .toList()
-                                : new ArrayList<>())
+                                .toList()
+                            : new ArrayList<>())
                     .build())
         .toList();
   }
@@ -265,16 +228,8 @@ public class NotificationServiceImpl implements INotificationService {
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
-      UserBaseResponse userBaseResponse =
-              UserBaseResponse.builder()
-                      .id(user.getId())
-                      .email(user.getEmail())
-                      .firstName(user.getFirstName())
-                      .lastName(user.getLastName())
-                      .avatar(user.getAvatar())
-                      .displayName(user.getDisplayName())
-                      .build();
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    UserBaseResponse userBaseResponse = userMapper.toUserBaseResponse(user);
     return CommentResponse.builder()
         .id(newComment.getId().toString())
         .user(userBaseResponse)
@@ -294,7 +249,9 @@ public class NotificationServiceImpl implements INotificationService {
                     new IllegalArgumentException(
                         "Notification not found with id: " + notificationId));
 
-    notification.getComments().removeIf(comment -> comment.getId().equals(UUID.fromString(commentId)));
+    notification
+        .getComments()
+        .removeIf(comment -> comment.getId().equals(UUID.fromString(commentId)));
     notificationRepository.save(notification);
   }
 
@@ -319,17 +276,8 @@ public class NotificationServiceImpl implements INotificationService {
     User user =
         userRepository
             .findById(existingComment.getUserId())
-            .orElseThrow(
-                () -> new IllegalArgumentException("User not found with id: " + existingComment.getUserId()));
-      UserBaseResponse userBaseResponse =
-              UserBaseResponse.builder()
-                      .id(user.getId())
-                      .email(user.getEmail())
-                      .firstName(user.getFirstName())
-                      .lastName(user.getLastName())
-                      .avatar(user.getAvatar())
-                      .displayName(user.getDisplayName())
-                      .build();
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    UserBaseResponse userBaseResponse = userMapper.toUserBaseResponse(user);
     return CommentResponse.builder()
         .id(existingComment.getId().toString())
         .user(userBaseResponse)

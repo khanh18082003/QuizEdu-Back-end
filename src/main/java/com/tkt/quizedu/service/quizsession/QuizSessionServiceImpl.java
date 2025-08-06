@@ -87,8 +87,12 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
     User user = userDetail.getUser();
     QuizSession quizSession =
         quizSessionRepository
-            .findByAccessCodeAndStatus(accessCode, SessionStatus.LOBBY)
-            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_QUIZ_SESSION_ACTIVE));
+            .findByAccessCode(accessCode)
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+
+    if (quizSession.getStatus() != SessionStatus.LOBBY) {
+      throw new QuizException(ErrorCode.MESSAGE_INVALID_SESSION_STATUS);
+    }
 
     if (quizSession.getParticipants().stream().anyMatch(p -> p.getUserId().equals(user.getId()))) {
       throw new QuizException(ErrorCode.MESSAGE_ALREADY_JOINED);

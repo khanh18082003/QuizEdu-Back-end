@@ -3,7 +3,6 @@ package com.tkt.quizedu.data.dto.response;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tkt.quizedu.data.collection.User;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

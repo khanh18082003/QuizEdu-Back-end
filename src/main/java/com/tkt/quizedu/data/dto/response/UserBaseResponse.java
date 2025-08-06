@@ -15,7 +15,6 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Builder
 public class UserBaseResponse implements Serializable {
   String id;
   String email;

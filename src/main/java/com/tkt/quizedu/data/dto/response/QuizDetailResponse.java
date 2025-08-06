@@ -20,6 +20,7 @@ public class QuizDetailResponse implements Serializable {
   String name;
   String description;
   String quizSessionId;
+  String accessCode;
   SessionStatus status;
   LocalDateTime startTime;
   LocalDateTime endTime;

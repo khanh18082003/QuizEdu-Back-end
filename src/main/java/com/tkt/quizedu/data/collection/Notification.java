@@ -15,7 +15,6 @@ import com.tkt.quizedu.data.base.StringIdentityCollection;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.springframework.data.mongodb.core.mapping.Field;
 
 @Document(collection = "notifications")
 @Getter
