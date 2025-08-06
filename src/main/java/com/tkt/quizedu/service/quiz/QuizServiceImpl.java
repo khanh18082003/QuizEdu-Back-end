@@ -712,6 +712,17 @@ public class QuizServiceImpl implements IQuizService {
     MultipleChoiceQuiz multipleChoiceQuiz =
         multipleChoiceQuizRepository.findByQuizId(quiz.getId()).orElse(null);
     if (multipleChoiceQuiz != null) {
+      List<MultipleChoiceQuiz.Question> questions = multipleChoiceQuiz.getQuestions();
+      if (questions != null && !questions.isEmpty()) {
+        // Gán UUID cho từng câu hỏi nếu chưa có
+        questions.forEach(
+            question -> {
+              if (question.getAnswers() != null) {
+                Collections.shuffle(question.getAnswers());
+              }
+            });
+        multipleChoiceQuiz.setQuestions(questions);
+      }
       Collections.shuffle(multipleChoiceQuiz.getQuestions());
     }
     MatchingQuiz matchingQuiz = matchingQuizRepository.findByQuizId(quiz.getId());

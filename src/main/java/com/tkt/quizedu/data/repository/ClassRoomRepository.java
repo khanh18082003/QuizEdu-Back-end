@@ -49,10 +49,11 @@ public interface ClassRoomRepository extends BaseRepository<ClassRoom, String> {
             + "'created_at': 1 "
             + "} }",
         "{ '$sort': { 'created_at': -1 } }",
-        "{ '$skip': ?#{#pageable.offset} }",
-        "{ '$limit': ?#{#pageable.pageSize} }"
+        "{ '$skip': ?1 }",
+        "{ '$limit': ?2 }"
       })
-  List<ClassroomBaseResponse> findClassroomResponsesByIds(List<String> ids, Pageable pageable);
+  List<ClassroomBaseResponse> findClassroomResponsesByIds(
+      List<String> ids, long offset, int pageSize);
 
   @Aggregation(
       pipeline = {

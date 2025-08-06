@@ -10,10 +10,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tkt.quizedu.data.collection.ClassRoom;
-import com.tkt.quizedu.data.collection.CustomUserDetail;
-import com.tkt.quizedu.data.collection.Quiz;
-import com.tkt.quizedu.data.collection.User;
+import com.tkt.quizedu.data.collection.*;
 import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
 import com.tkt.quizedu.data.dto.request.InviteStudentsToClassRoomRequest;
@@ -91,7 +88,8 @@ public class ClassRoomServiceImpl implements IClassRoomService {
 
     // Lấy data với pagination
     List<ClassroomBaseResponse> content =
-        classRoomRepository.findClassroomResponsesByIds(ids, pageable);
+        classRoomRepository.findClassroomResponsesByIds(
+            ids, pageable.getOffset(), pageable.getPageSize());
 
     return new PageImpl<>(content, pageable, total);
   }
@@ -171,12 +169,21 @@ public class ClassRoomServiceImpl implements IClassRoomService {
   public PaginationResponse<QuizDetailResponse> getQuizSessionsByClassRoomId(
       String classRoomId, int page, int pageSize) {
     Pageable pageable = PageRequest.of(page - 1, pageSize);
+
+    // Use the same aggregation pipeline for both operations, just without pagination for counting
+    List<QuizSession> allQuizSessions =
+        quizSessionRepository.totalQuizSessionByClassId(classRoomId);
+    int totalQuizSessions = allQuizSessions.size();
+
     List<QuizDetailResponse> quizDetailResponseList =
-        quizSessionRepository.findAllQuizzSessionByClassId(classRoomId, pageable);
+        quizSessionRepository.findAllQuizSessionByClassId(
+            classRoomId, pageable.getOffset(), pageable.getPageSize());
+
     Page<QuizDetailResponse> quizDetailResponsePage =
-        new PageImpl<>(quizDetailResponseList, pageable, quizDetailResponseList.size());
+        new PageImpl<>(quizDetailResponseList, pageable, totalQuizSessions);
+
     return PaginationResponse.<QuizDetailResponse>builder()
-        .page(quizDetailResponsePage.getNumber())
+        .page(quizDetailResponsePage.getNumber() + 1)
         .pageSize(quizDetailResponsePage.getSize())
         .pages(quizDetailResponsePage.getTotalPages())
         .total(quizDetailResponsePage.getTotalElements())
