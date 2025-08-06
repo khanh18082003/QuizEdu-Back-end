@@ -1,31 +1,28 @@
 package com.tkt.quizedu.data.dto.response;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tkt.quizedu.data.constant.UserRole;
+import com.tkt.quizedu.data.collection.ClassRoom;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PROTECTED)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Builder
-public class UserBaseResponse implements Serializable {
+public class NotificationResponse {
   String id;
-  String email;
-  String firstName;
-  String lastName;
-  String displayName;
-  String avatar;
-  Boolean noPassword;
-  boolean isActive;
-  UserRole role;
+  String description;
+  UserBaseResponse teacher;
+  ClassRoom classRoom;
+  List<String> xPathFiles;
   LocalDateTime createdAt;
   LocalDateTime updatedAt;
+  List<CommentResponse> comments;
 }
