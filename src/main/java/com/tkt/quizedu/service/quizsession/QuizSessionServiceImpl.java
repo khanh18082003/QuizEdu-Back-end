@@ -1,7 +1,12 @@
 package com.tkt.quizedu.service.quizsession;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -13,10 +18,7 @@ import com.tkt.quizedu.data.constant.ErrorCode;
 import com.tkt.quizedu.data.constant.SessionStatus;
 import com.tkt.quizedu.data.dto.request.QuizSessionRequest;
 import com.tkt.quizedu.data.dto.request.SubmitQuizRequest;
-import com.tkt.quizedu.data.dto.response.HistoryQuizSessionResponse;
-import com.tkt.quizedu.data.dto.response.QuizSessionDetailResponse;
-import com.tkt.quizedu.data.dto.response.QuizSessionResponse;
-import com.tkt.quizedu.data.dto.response.UserBaseResponse;
+import com.tkt.quizedu.data.dto.response.*;
 import com.tkt.quizedu.data.mapper.QuizSessionMapper;
 import com.tkt.quizedu.data.mapper.UserMapper;
 import com.tkt.quizedu.data.repository.*;
@@ -108,16 +110,73 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
   }
 
   @Override
+  @Transactional
   public int submitQuizSession(SubmitQuizRequest request) {
+    // Validate request
+    if (request == null || request.quizSessionId() == null) {
+      throw new QuizException(ErrorCode.MESSAGE_INVALID_REQUEST);
+    }
+
+    // Authenticate user
+    CustomUserDetail userDetail = SecurityUtils.getUserDetail();
+    if (userDetail == null) {
+      throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
+    }
+    User user = userDetail.getUser();
+
+    // Retrieve quiz session
+    QuizSession quizSession =
+        quizSessionRepository
+            .findById(request.quizSessionId())
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+
+    // Validate quiz session status
+    if (quizSession.getStatus() != SessionStatus.ACTIVE) {
+      throw new QuizException(ErrorCode.MESSAGE_INVALID_SESSION_STATUS);
+    }
+
+    // Check if user has already submitted
+    QuizSession.Participant participant =
+        quizSession.getParticipants().stream()
+            .filter(p -> p.getUserId().equals(user.getId()))
+            .findFirst()
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_NOT_PARTICIPATED));
+
+    if (participant.getScore() != null && participant.getScore() > 0) {
+      throw new QuizException(ErrorCode.MESSAGE_ALREADY_SUBMITTED);
+    }
+
+    // Evaluate answers
     int pointOfMultipleChoiceQuiz =
         quizService.evaluateMultipleChoiceQuizQuestion(
-            request.quizSessionId(), request.multipleChoiceAnswers());
+            quizSession.getId(), request.multipleChoiceAnswers());
     int pointOfMatchingQuiz =
-        quizService.evaluateMatchingQuizQuestion(
-            request.quizSessionId(), request.matchingAnswers());
-    System.out.println("Point of Multiple Choice Quiz: " + pointOfMultipleChoiceQuiz);
-    System.out.println("Point of Matching Quiz: " + pointOfMatchingQuiz);
-    return pointOfMultipleChoiceQuiz + pointOfMatchingQuiz;
+        quizService.evaluateMatchingQuizQuestion(quizSession.getId(), request.matchingAnswers());
+    int totalScore = pointOfMultipleChoiceQuiz + pointOfMatchingQuiz;
+
+    // Update participant score
+    participant.setScore(totalScore);
+
+    // Save updated quiz session
+    quizSessionRepository.save(quizSession);
+
+    // Publish submission event
+    webSocketPublisher.publishSubmitQuizSession(
+        request.quizSessionId(),
+        UserSubmitResponse.builder()
+            .id(user.getId())
+            .email(user.getEmail())
+            .quizSessionId(request.quizSessionId())
+            .score(totalScore)
+            .build());
+
+    log.info(
+        "User {} submitted quiz session {} with score {}",
+        user.getEmail(),
+        request.quizSessionId(),
+        totalScore);
+
+    return totalScore;
   }
 
   @Override
@@ -125,13 +184,22 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
     QuizSession quizSession =
         quizSessionRepository
             .findById(quizSessionId)
-            .orElseThrow(() -> new IllegalArgumentException("Quiz session not found"));
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+
+    if (quizSession.getStatus() != SessionStatus.COMPLETED) {
+      throw new QuizException(ErrorCode.MESSAGE_INVALID_SESSION_STATUS);
+    }
+
+    if (quizSession.getParticipants().stream()
+        .noneMatch(participant -> participant.getUserId().equals(userId))) {
+      throw new QuizException(ErrorCode.MESSAGE_NOT_PARTICIPATED);
+    }
 
     HistoryQuizSessionResponse response = new HistoryQuizSessionResponse();
     Quiz quiz =
         quizRepository
             .findById(quizSession.getQuizId())
-            .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
 
     MultipleChoiceQuiz multipleChoiceQuiz =
         multipleChoiceQuizRepository
@@ -223,5 +291,88 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
     quizSessionRepository.save(quizSession);
     webSocketPublisher.publishCloseQuizSession(quizSessionId);
     log.info("Quiz session {} closed by teacher {}", quizSessionId, userDetail.getUsername());
+  }
+
+  @Override
+  public List<UserBaseResponse> getStudentsInQuizSession(String quizSessionId) {
+    List<QuizSession.Participant> participants =
+        quizSessionRepository
+            .findById(quizSessionId)
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID))
+            .getParticipants();
+    if (participants.isEmpty()) {
+      return List.of();
+    }
+
+    List<String> studentIds =
+        participants.stream().map(QuizSession.Participant::getUserId).toList();
+    List<User> students = userRepository.findAllById(studentIds);
+    return students.stream().map(userMapper::toUserBaseResponse).toList();
+  }
+
+  @Override
+  public List<UserSubmitResponse> getScoreboard(String quizSessionId) {
+    QuizSession quizSession =
+        quizSessionRepository
+            .findById(quizSessionId)
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+
+    if (quizSession.getStatus() != SessionStatus.COMPLETED) {
+      throw new QuizException(ErrorCode.MESSAGE_INVALID_SESSION_STATUS);
+    }
+
+    List<QuizSession.Participant> participants = quizSession.getParticipants();
+    if (participants.isEmpty()) {
+      log.info("No participants found for quiz session: {}", quizSessionId);
+      return List.of();
+    }
+
+    // Get all user IDs and fetch users in a single database call
+    List<String> userIds = participants.stream().map(QuizSession.Participant::getUserId).toList();
+    List<User> usersList = userRepository.findAllById(userIds);
+
+    // Create a map for efficient user lookup
+    Map<String, User> usersMap =
+        usersList.stream().collect(Collectors.toMap(User::getId, Function.identity()));
+
+    // Create ranked scoreboard
+    List<UserSubmitResponse> scoreboard = new ArrayList<>();
+    int position = 1;
+
+    // Sort participants by score (descending) before mapping to response objects
+    List<QuizSession.Participant> sortedParticipants =
+        participants.stream()
+            .sorted(Comparator.comparing(p -> p.getScore() != null ? -p.getScore() : 0))
+            .toList();
+
+    for (QuizSession.Participant participant : sortedParticipants) {
+      User user = usersMap.get(participant.getUserId());
+      if (user == null) {
+        log.warn("User not found for ID: {}", participant.getUserId());
+        continue;
+      }
+
+      Integer score = participant.getScore() != null ? participant.getScore() : 0;
+
+      UserSubmitResponse response =
+          UserSubmitResponse.builder()
+              .id(user.getId())
+              .email(user.getEmail())
+              .firstName(user.getFirstName())
+              .lastName(user.getLastName())
+              .quizSessionId(quizSessionId)
+              .score(score)
+              .rank(position++)
+              .build();
+
+      scoreboard.add(response);
+    }
+
+    log.info(
+        "Generated scoreboard with {} participants for quiz session: {}",
+        scoreboard.size(),
+        quizSessionId);
+
+    return scoreboard;
   }
 }

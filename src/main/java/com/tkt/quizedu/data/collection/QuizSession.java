@@ -41,7 +41,8 @@ public class QuizSession extends StringIdentityCollection {
   @Data
   public static class Participant {
     String userId;
-    @CreatedDate LocalDateTime joinedAt;
+    Integer score;
+    Integer rank;
 
     public Participant(String userId) {
       this.userId = userId;

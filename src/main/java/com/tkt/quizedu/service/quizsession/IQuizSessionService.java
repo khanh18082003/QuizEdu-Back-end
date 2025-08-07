@@ -1,10 +1,10 @@
 package com.tkt.quizedu.service.quizsession;
 
+import java.util.List;
+
 import com.tkt.quizedu.data.dto.request.QuizSessionRequest;
 import com.tkt.quizedu.data.dto.request.SubmitQuizRequest;
-import com.tkt.quizedu.data.dto.response.HistoryQuizSessionResponse;
-import com.tkt.quizedu.data.dto.response.QuizSessionDetailResponse;
-import com.tkt.quizedu.data.dto.response.QuizSessionResponse;
+import com.tkt.quizedu.data.dto.response.*;
 
 public interface IQuizSessionService {
   QuizSessionResponse createQuizSession(QuizSessionRequest request);
@@ -20,4 +20,8 @@ public interface IQuizSessionService {
   void startQuizSession(String quizSessionId);
 
   void closeQuizSession(String quizSessionId);
+
+  List<UserBaseResponse> getStudentsInQuizSession(String quizSessionId);
+
+  List<UserSubmitResponse> getScoreboard(String quizSessionId);
 }

@@ -1,5 +1,7 @@
 package com.tkt.quizedu.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -7,15 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import com.tkt.quizedu.component.Translator;
 import com.tkt.quizedu.data.constant.EndpointConstant;
 import com.tkt.quizedu.data.constant.ErrorCode;
-import com.tkt.quizedu.data.dto.request.HistoryQuizSessionRequest;
 import com.tkt.quizedu.data.dto.request.JoinQuizSessionRequest;
 import com.tkt.quizedu.data.dto.request.QuizSessionRequest;
 import com.tkt.quizedu.data.dto.request.SubmitQuizRequest;
-import com.tkt.quizedu.data.dto.response.HistoryQuizSessionResponse;
-import com.tkt.quizedu.data.dto.response.QuizSessionDetailResponse;
-import com.tkt.quizedu.data.dto.response.QuizSessionResponse;
-import com.tkt.quizedu.data.dto.response.SuccessApiResponse;
-import com.tkt.quizedu.service.quiz.IQuizService;
+import com.tkt.quizedu.data.dto.response.*;
 import com.tkt.quizedu.service.quizsession.IQuizSessionService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
     description = "APIs for QuizSession registration and management")
 public class QuizSessionController {
   IQuizSessionService quizSessionService;
-  IQuizService quizService;
 
   @PostMapping
   public SuccessApiResponse<QuizSessionResponse> createQuizSession(
@@ -71,16 +67,15 @@ public class QuizSessionController {
         .build();
   }
 
-  @PostMapping("/history")
+  @GetMapping("/history/{quizSessionId}")
   public SuccessApiResponse<HistoryQuizSessionResponse> getHistoryByUserId(
-      @RequestBody HistoryQuizSessionRequest historyQuizSessionRequest) {
+      @PathVariable String quizSessionId,
+      @RequestParam(name = "uid", required = false) String userId) {
     return SuccessApiResponse.<HistoryQuizSessionResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
-        .data(
-            quizSessionService.getQuizSessionHistory(
-                historyQuizSessionRequest.quizSessionId(), historyQuizSessionRequest.userId()))
+        .data(quizSessionService.getQuizSessionHistory(quizSessionId, userId))
         .build();
   }
 
@@ -115,6 +110,31 @@ public class QuizSessionController {
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
+  }
+
+  @GetMapping("/{quizSessionId}/students")
+  @PreAuthorize("hasRole('TEACHER')")
+  SuccessApiResponse<List<UserBaseResponse>> getStudentsInQuizSession(
+      @PathVariable String quizSessionId) {
+    List<UserBaseResponse> response = quizSessionService.getStudentsInQuizSession(quizSessionId);
+    return SuccessApiResponse.<List<UserBaseResponse>>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(response)
+        .build();
+  }
+
+  @GetMapping("/{quizSessionId}/scoreboard")
+  @PreAuthorize("hasRole('TEACHER')")
+  SuccessApiResponse<List<UserSubmitResponse>> getScoreboard(@PathVariable String quizSessionId) {
+    List<UserSubmitResponse> response = quizSessionService.getScoreboard(quizSessionId);
+    return SuccessApiResponse.<List<UserSubmitResponse>>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(response)
         .build();
   }
 }

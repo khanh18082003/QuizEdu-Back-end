@@ -1,10 +1,6 @@
 package com.tkt.quizedu.service.quiz;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -305,81 +301,121 @@ public class QuizServiceImpl implements IQuizService {
   }
 
   @Override
+  @Transactional
   public int evaluateMultipleChoiceQuizQuestion(
       String quizSessionId, List<SubmitMultipleChoiceRequest> requestList) {
+    // Validate input
     if (requestList == null || requestList.isEmpty()) {
       return 0;
     }
+
+    // Retrieve quiz session
     QuizSession quizSession =
         quizSessionRepository
             .findById(quizSessionId)
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+
+    // Retrieve multiple choice quiz
     String quizId = quizSession.getQuizId();
     MultipleChoiceQuiz multipleChoiceQuiz =
-        multipleChoiceQuizRepository.findByQuizId(quizId).orElse(null);
+        multipleChoiceQuizRepository
+            .findByQuizId(quizId)
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
 
+    // Validate questions exist
     List<MultipleChoiceQuiz.Question> questions = multipleChoiceQuiz.getQuestions();
     if (questions == null || questions.isEmpty()) {
-      throw new RuntimeException("No questions found in the multiple choice quiz");
+      throw new QuizException(ErrorCode.MESSAGE_INVALID_ID);
     }
 
     int totalScore = 0;
+    String currentUserId = SecurityUtils.getUserDetail().getUser().getId();
 
     for (SubmitMultipleChoiceRequest submitRequest : requestList) {
+      // Find the question
       MultipleChoiceQuiz.Question question =
-          questions.stream()
-              .filter(q -> q.getQuestionId().toString().equals(submitRequest.questionId()))
-              .findFirst()
-              .orElseThrow(
-                  () -> new RuntimeException("Question not found: " + submitRequest.questionId()));
+          findQuestionById(questions, submitRequest.questionId());
 
+      // Evaluate user answers
       List<MultipleChoiceQuiz.Question.AnswerParticipant> evaluatedParticipants =
-          submitRequest.answerParticipant().stream()
-              .map(
-                  participant -> {
-                    boolean isCorrect =
-                        question.getAnswers().stream()
-                            .anyMatch(
-                                answer ->
-                                    answer.getAnswerText().equals(participant.getAnswer())
-                                        && answer.isCorrect());
+          evaluateUserAnswers(
+              question, submitRequest.answerParticipant(), currentUserId, quizSessionId);
 
-                    MultipleChoiceQuiz.Question.AnswerParticipant evaluated =
-                        new MultipleChoiceQuiz.Question.AnswerParticipant();
-                    evaluated.setUserId(SecurityUtils.getUserDetail().getUser().getId());
-                    evaluated.setQuizSessionId(quizSessionId);
-                    evaluated.setAnswer(participant.getAnswer());
-                    evaluated.setCorrect(isCorrect);
-                    return evaluated;
-                  })
-              .toList();
+      // Initialize answerParticipants if null
+      if (question.getAnswerParticipants() == null) {
+        question.setAnswerParticipants(new ArrayList<>());
+      }
 
-      // Gắn danh sách kết quả đã đánh giá vào câu hỏi
-      question.setAnswerParticipants(evaluatedParticipants);
+      // Add evaluated answers to the question
+      question.getAnswerParticipants().addAll(evaluatedParticipants);
 
-      // Nếu người dùng chọn đúng tất cả đáp án đúng (và không chọn sai), tính điểm
-      List<String> correctAnswers =
-          question.getAnswers().stream()
-              .filter(MultipleChoiceQuiz.Question.AnswerOption::isCorrect)
-              .map(MultipleChoiceQuiz.Question.AnswerOption::getAnswerText)
-              .toList();
-
-      List<String> userAnswers =
-          evaluatedParticipants.stream()
-              .filter(MultipleChoiceQuiz.Question.AnswerParticipant::isCorrect)
-              .map(MultipleChoiceQuiz.Question.AnswerParticipant::getAnswer)
-              .toList();
-
-      boolean fullCorrect =
-          correctAnswers.size() == userAnswers.size() && correctAnswers.containsAll(userAnswers);
-
-      if (fullCorrect) {
+      // Calculate score
+      if (isFullyCorrect(question, evaluatedParticipants)) {
         totalScore += question.getPoints();
       }
     }
 
     multipleChoiceQuizRepository.save(multipleChoiceQuiz);
     return totalScore;
+  }
+
+  private MultipleChoiceQuiz.Question findQuestionById(
+      List<MultipleChoiceQuiz.Question> questions, String questionId) {
+    return questions.stream()
+        .filter(q -> q.getQuestionId().toString().equals(questionId))
+        .findFirst()
+        .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+  }
+
+  private List<MultipleChoiceQuiz.Question.AnswerParticipant> evaluateUserAnswers(
+      MultipleChoiceQuiz.Question question,
+      List<MultipleChoiceQuiz.Question.AnswerParticipant> userAnswers,
+      String userId,
+      String quizSessionId) {
+
+    // Create a map of correct answers for faster lookup
+    Map<String, Boolean> correctAnswersMap =
+        question.getAnswers().stream()
+            .collect(
+                Collectors.toMap(
+                    MultipleChoiceQuiz.Question.AnswerOption::getAnswerText,
+                    MultipleChoiceQuiz.Question.AnswerOption::isCorrect));
+
+    return userAnswers.stream()
+        .map(
+            participant -> {
+              boolean isCorrect =
+                  Boolean.TRUE.equals(
+                      correctAnswersMap.getOrDefault(participant.getAnswer(), false));
+
+              MultipleChoiceQuiz.Question.AnswerParticipant evaluated =
+                  new MultipleChoiceQuiz.Question.AnswerParticipant();
+              evaluated.setUserId(userId);
+              evaluated.setQuizSessionId(quizSessionId);
+              evaluated.setAnswer(participant.getAnswer());
+              evaluated.setCorrect(isCorrect);
+              return evaluated;
+            })
+        .toList();
+  }
+
+  private boolean isFullyCorrect(
+      MultipleChoiceQuiz.Question question,
+      List<MultipleChoiceQuiz.Question.AnswerParticipant> evaluatedParticipants) {
+
+    List<String> correctAnswers =
+        question.getAnswers().stream()
+            .filter(MultipleChoiceQuiz.Question.AnswerOption::isCorrect)
+            .map(MultipleChoiceQuiz.Question.AnswerOption::getAnswerText)
+            .toList();
+
+    List<String> userAnswers =
+        evaluatedParticipants.stream()
+            .filter(MultipleChoiceQuiz.Question.AnswerParticipant::isCorrect)
+            .map(MultipleChoiceQuiz.Question.AnswerParticipant::getAnswer)
+            .toList();
+
+    return correctAnswers.size() == userAnswers.size() && correctAnswers.containsAll(userAnswers);
   }
 
   @Override

@@ -26,10 +26,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
-    registry
-        .addEndpoint("/ws-start-exam", "/ws-join-quiz-session")
-        .setAllowedOrigins("http://localhost:5173")
-        .withSockJS();
+    registry.addEndpoint("/ws-session").setAllowedOrigins("http://localhost:5173").withSockJS();
   }
 
   @Override
