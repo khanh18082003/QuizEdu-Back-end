@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.tkt.quizedu.data.collection.ClassRoom;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -43,6 +45,7 @@ public class NotificationServiceImpl implements INotificationService {
   ClassRoomRepository classRoomRepository;
   IS3Service s3Service;
   UserMapper userMapper;
+  KafkaTemplate<String, String> kafkaTemplate;
 
   @Override
   @Transactional
@@ -57,12 +60,19 @@ public class NotificationServiceImpl implements INotificationService {
       }
     }
     notification.setTeacherId(SecurityUtils.getUserDetail().getUser().getId());
+    String teacherName = SecurityUtils.getUserDetail().getUser().getFirstName()+ " " + SecurityUtils.getUserDetail().getUser().getLastName();
     notificationRepository.save(notification);
     User teacher =
         userRepository
             .findById(notification.getTeacherId())
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     UserBaseResponse userBaseResponse = userMapper.toUserBaseResponse(teacher);
+    ClassRoom classRoom = classRoomRepository.findById(request.classId()).orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    List<User> students = userRepository.findAllById(classRoom.getStudentIds());
+    String emailList = String.join(",", students.stream().map(User::getEmail).toList());
+    String message = String.format("emailList=%s;teacherName=%s;className=%s;notification=%s;files=%s", emailList, teacherName,
+        classRoom.getName(), notification.getDescription(), notification.getXPathFiles().toString());
+    kafkaTemplate.send("send-notification-to-emails", message);
     return NotificationResponse.builder()
         .id(notification.getId())
         .description(notification.getDescription())
@@ -161,10 +171,12 @@ public class NotificationServiceImpl implements INotificationService {
 
   @Override
   public List<NotificationResponse> getAllByClassId(String classId) {
-    String userId = SecurityUtils.getUserDetail().getUser().getId();
+    Notification noti =
+        notificationRepository
+            .findAllByClassId(classId).get(0);
     User teacher =
         userRepository
-            .findById(userId)
+            .findById(noti.getTeacherId())
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     UserBaseResponse userBaseResponse = userMapper.toUserBaseResponse(teacher);
     System.out.println(notificationRepository.findAllByClassId(classId).size());
@@ -196,7 +208,7 @@ public class NotificationServiceImpl implements INotificationService {
                                                           ErrorCode.MESSAGE_INVALID_ID));
 
                                       UserBaseResponse userComment =
-                                          userMapper.toUserBaseResponse(teacher);
+                                          userMapper.toUserBaseResponse(user);
 
                                       return CommentResponse.builder()
                                           .id(comment.getId().toString())
