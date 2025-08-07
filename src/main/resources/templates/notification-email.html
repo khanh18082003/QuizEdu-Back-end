@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Class Notification</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; color: #333; }
+        .container { background: #fff; margin: 30px auto; padding: 30px; border-radius: 8px; max-width: 600px; box-shadow: 0 2px 8px #ccc; }
+        .header { font-size: 22px; font-weight: bold; color: #4a69bd; margin-bottom: 10px; }
+        .section { margin-bottom: 20px; }
+        .files { background: #f1f8ff; border-radius: 5px; padding: 10px; }
+        .footer { font-size: 13px; color: #888; margin-top: 30px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">Notification for <span th:text="${classroomName}">Class Name</span></div>
+    <div class="section">
+        <p>Hello students,</p>
+        <p>You have a new notification from <strong th:text="${teacherName}">Teacher Name</strong>:</p>
+        <p th:text="${notification}">Notification content</p>
+    </div>
+    <div class="footer">
+        For support, contact <span th:text="${supportEmail}">support@example.com</span>.<br>
+        &copy; 2025 Quiz Edu Platform
+    </div>
+</div>
+</body>
+</html>

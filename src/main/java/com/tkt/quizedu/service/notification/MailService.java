@@ -1,9 +1,10 @@
 package com.tkt.quizedu.service.notification;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
+import com.tkt.quizedu.service.s3.IS3Service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
@@ -26,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MailService {
   private final JavaMailSender mailSender;
   private final SpringTemplateEngine springTemplateEngine;
+  private final IS3Service s3Service; // Assuming you have an S3 service for file handling
 
   @Value("${spring.mail.from}")
   @NonFinal
@@ -34,6 +36,49 @@ public class MailService {
   @Value("${admin.email}")
   @NonFinal
   String supportEmail;
+
+  private void sendEmailWithAttachments(
+          String recipients,
+          String subject,
+          String template,
+          Map<String, Object> variables,
+          List<File> attachments
+  ) throws MessagingException, UnsupportedEncodingException {
+    MimeMessage mimeMessage = mailSender.createMimeMessage();
+    MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+    helper.setFrom(from, "QuizEdu Support");
+
+    // Handle multiple recipients
+    if (recipients.contains(",")) {
+      helper.setTo(InternetAddress.parse(recipients));
+      log.info("Sending email to multiple recipients: {}", recipients);
+    } else {
+      helper.setTo(recipients);
+      log.info("Sending email to: {}", recipients);
+    }
+
+    helper.setSubject(subject);
+
+    // Process template
+    Context context = new Context();
+    context.setVariables(variables);
+    String content = springTemplateEngine.process(template, context);
+    helper.setText(content, true);
+
+    // Attach files
+    for (File file : attachments) {
+      helper.addAttachment(file.getName(), file);
+    }
+
+    try {
+      mailSender.send(mimeMessage);
+      log.info("Email sent successfully with subject: {}", subject);
+    } catch (Exception e) {
+      log.error("Failed to send email with attachments: {}", e.getMessage());
+      throw e;
+    }
+  }
 
   @KafkaListener(topics = "confirm-account-topic", groupId = "quizedu-group")
   private void sendConfirmEmailByKafka(String message) {
@@ -94,6 +139,44 @@ public class MailService {
           emailsString, "Access Code for Quiz: " + quizName, "access-code-email.html", variables);
     } catch (Exception e) {
       log.error("Failed to send access code email: {}", e.getMessage(), e);
+    }
+  }
+
+  @KafkaListener(topics = "send-notification-to-emails", groupId = "quizedu-group")
+  public void sendNotificationToEmail(String message) {
+    try {
+      String[] parts = message.split(";");
+      String emailsString = extractValue(parts[0]);
+      String teacherName = extractValue(parts[1]);
+      String classRoomName = extractValue(parts[2]);
+      String notification = extractValue(parts[3]);
+      String files = extractValue(parts[4]);
+
+      // Parse file URLs
+      List<String> fileUrls = Arrays.stream(files.replaceAll("[\\[\\]]", "").split(","))
+              .map(String::trim)
+              .filter(s -> !s.isEmpty())
+              .toList();
+
+      // Download files from S3
+      List<File> attachments = new ArrayList<>();
+      for (String url : fileUrls) {
+        File file = s3Service.downloadFileToTemp(url); // Implement this method in your S3 service
+        if (file != null) attachments.add(file);
+      }
+
+      Map<String, Object> variables = new HashMap<>();
+      variables.put("teacherName", teacherName);
+      variables.put("classroomName", classRoomName);
+      variables.put("notification", notification);
+      variables.put("files", fileUrls); // For displaying links in the email body if needed
+      variables.put("supportEmail", supportEmail);
+
+      String subject = "Notification for class: " + classRoomName;
+
+      sendEmailWithAttachments(emailsString, subject, "notification-email.html", variables, attachments);
+    } catch (Exception e) {
+      log.error("Failed to send notification email: {}", e.getMessage(), e);
     }
   }
 
