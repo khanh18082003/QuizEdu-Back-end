@@ -18,4 +18,6 @@ public class QuizBaseResponse {
   String description;
   boolean isActive;
   boolean isPublic;
+  int numberOfMultipleChoiceQuestions;
+  int numberOfMatchingQuestions;
 }

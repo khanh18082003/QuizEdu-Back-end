@@ -205,6 +205,7 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
         multipleChoiceQuizRepository
             .findByQuizId(quizSession.getQuizId())
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+
     multipleChoiceQuiz.setQuestions(
         quizService.getMultipleChoiceHistoryByUserId(quizSessionId, userId));
 

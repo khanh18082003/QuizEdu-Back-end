@@ -153,7 +153,8 @@ public class ClassRoomServiceImpl implements IClassRoomService {
     Pageable pageable = PageRequest.of(page - 1, pageSize);
 
     List<UserBaseResponse> students =
-        classRoomRepository.findAllStudentsInClassRoom(classRoomId, pageable);
+        classRoomRepository.findAllStudentsInClassRoom(
+            classRoomId, pageable.getOffset(), pageable.getPageSize());
     Page<UserBaseResponse> studentPage = new PageImpl<>(students, pageable, studentIds.size());
 
     return PaginationResponse.<UserBaseResponse>builder()

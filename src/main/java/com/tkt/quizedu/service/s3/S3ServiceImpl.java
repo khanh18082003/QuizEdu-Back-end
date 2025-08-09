@@ -3,8 +3,6 @@ package com.tkt.quizedu.service.s3;
 import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,7 +18,6 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Object;
 
 @Service
 @RequiredArgsConstructor
@@ -63,19 +60,18 @@ public class S3ServiceImpl implements IS3Service {
 
   @Override
   public File downloadFileToTemp(String s3Url) throws IOException {
-// Extract the key from the S3 URL
+    // Extract the key from the S3 URL
     String key = s3Url.substring(s3Url.lastIndexOf("/") + 1);
     File tempFile = File.createTempFile("s3file-", "-" + key);
-// Delete the file so S3 can write to it
+    // Delete the file so S3 can write to it
     if (tempFile.exists()) {
       tempFile.delete();
     }
 
-// Download the S3 object directly to the temp file
+    // Download the S3 object directly to the temp file
     s3Client.getObject(
-            builder -> builder.bucket(bucketName).key(key).build(),
-            ResponseTransformer.toFile(tempFile.toPath())
-    );
+        builder -> builder.bucket(bucketName).key(key).build(),
+        ResponseTransformer.toFile(tempFile.toPath()));
 
     return tempFile;
   }
