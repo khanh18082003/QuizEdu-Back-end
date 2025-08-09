@@ -7,12 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.tkt.quizedu.data.collection.ClassRoom;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tkt.quizedu.data.collection.ClassRoom;
 import com.tkt.quizedu.data.collection.Notification;
 import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.constant.ErrorCode;
@@ -60,18 +60,30 @@ public class NotificationServiceImpl implements INotificationService {
       }
     }
     notification.setTeacherId(SecurityUtils.getUserDetail().getUser().getId());
-    String teacherName = SecurityUtils.getUserDetail().getUser().getFirstName()+ " " + SecurityUtils.getUserDetail().getUser().getLastName();
+    String teacherName =
+        SecurityUtils.getUserDetail().getUser().getFirstName()
+            + " "
+            + SecurityUtils.getUserDetail().getUser().getLastName();
     notificationRepository.save(notification);
     User teacher =
         userRepository
             .findById(notification.getTeacherId())
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     UserBaseResponse userBaseResponse = userMapper.toUserBaseResponse(teacher);
-    ClassRoom classRoom = classRoomRepository.findById(request.classId()).orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    ClassRoom classRoom =
+        classRoomRepository
+            .findById(request.classId())
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     List<User> students = userRepository.findAllById(classRoom.getStudentIds());
     String emailList = String.join(",", students.stream().map(User::getEmail).toList());
-    String message = String.format("emailList=%s;teacherName=%s;className=%s;notification=%s;files=%s", emailList, teacherName,
-        classRoom.getName(), notification.getDescription(), notification.getXPathFiles().toString());
+    String message =
+        String.format(
+            "emailList=%s;teacherName=%s;className=%s;notification=%s;files=%s",
+            emailList,
+            teacherName,
+            classRoom.getName(),
+            notification.getDescription(),
+            notification.getXPathFiles().toString());
     kafkaTemplate.send("send-notification-to-emails", message);
     return NotificationResponse.builder()
         .id(notification.getId())
@@ -171,9 +183,7 @@ public class NotificationServiceImpl implements INotificationService {
 
   @Override
   public List<NotificationResponse> getAllByClassId(String classId) {
-    Notification noti =
-        notificationRepository
-            .findAllByClassId(classId).get(0);
+    Notification noti = notificationRepository.findAllByClassId(classId).get(0);
     User teacher =
         userRepository
             .findById(noti.getTeacherId())

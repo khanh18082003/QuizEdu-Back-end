@@ -1,9 +1,9 @@
 package com.tkt.quizedu.service.s3;
 
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.File;
 import java.io.IOException;
+
+import org.springframework.web.multipart.MultipartFile;
 
 public interface IS3Service {
 

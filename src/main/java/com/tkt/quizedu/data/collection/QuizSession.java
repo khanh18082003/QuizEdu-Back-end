@@ -42,7 +42,6 @@ public class QuizSession extends StringIdentityCollection {
   public static class Participant {
     String userId;
     Integer score;
-    Integer rank;
 
     public Participant(String userId) {
       this.userId = userId;
