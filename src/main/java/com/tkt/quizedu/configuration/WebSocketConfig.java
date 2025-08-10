@@ -20,13 +20,17 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry config) {
-    config.enableSimpleBroker("/topic");
+    config.enableSimpleBroker("/topic").setHeartbeatValue(new long[] {10000, 10000});
     config.setApplicationDestinationPrefixes("/app");
   }
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
-    registry.addEndpoint("/ws-session").setAllowedOrigins("http://localhost:5173").withSockJS();
+    registry
+        .addEndpoint("/ws-session")
+        .setAllowedOrigins("http://localhost:5173")
+        .withSockJS()
+        .setHeartbeatTime(10000);
   }
 
   @Override

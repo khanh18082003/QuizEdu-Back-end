@@ -142,9 +142,11 @@ public class NotificationServiceImpl implements INotificationService {
   @Override
   public NotificationResponse update(
       String id, NotificationRequest request, MultipartFile[] files) {
-    Notification notification = notificationRepository
+    Notification notification =
+        notificationRepository
             .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Notification not found with id: " + id));
+            .orElseThrow(
+                () -> new IllegalArgumentException("Notification not found with id: " + id));
 
     // Cập nhật description
     notification.setDescription(request.description());
@@ -189,20 +191,22 @@ public class NotificationServiceImpl implements INotificationService {
     // Save và return response
     notificationRepository.save(notification);
 
-    User teacher = userRepository
+    User teacher =
+        userRepository
             .findById(notification.getTeacherId())
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     UserBaseResponse userBaseResponse = userMapper.toUserBaseResponse(teacher);
 
     return NotificationResponse.builder()
-            .id(notification.getId())
-            .description(notification.getDescription())
-            .classRoom(classRoomRepository.findById(notification.getClassId()).orElse(null))
-            .teacher(userBaseResponse)
-            .xPathFiles(notification.getXPathFiles() != null ? notification.getXPathFiles() : new ArrayList<>())
-            .createdAt(notification.getCreatedAt())
-            .updatedAt(notification.getUpdatedAt())
-            .build();
+        .id(notification.getId())
+        .description(notification.getDescription())
+        .classRoom(classRoomRepository.findById(notification.getClassId()).orElse(null))
+        .teacher(userBaseResponse)
+        .xPathFiles(
+            notification.getXPathFiles() != null ? notification.getXPathFiles() : new ArrayList<>())
+        .createdAt(notification.getCreatedAt())
+        .updatedAt(notification.getUpdatedAt())
+        .build();
   }
 
   @Override
