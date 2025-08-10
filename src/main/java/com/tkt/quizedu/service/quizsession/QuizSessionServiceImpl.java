@@ -284,9 +284,7 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
     if (!quizSession.getTeacherId().equals(userDetail.getUser().getId())) {
       throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
     }
-    if (quizSession.getStatus() != SessionStatus.ACTIVE) {
-      throw new QuizException(ErrorCode.MESSAGE_INVALID_SESSION_STATUS);
-    }
+
     quizSession.setStatus(SessionStatus.COMPLETED);
     quizSession.setEndTime(LocalDateTime.now());
     quizSessionRepository.save(quizSession);

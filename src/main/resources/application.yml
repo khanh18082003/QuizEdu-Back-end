@@ -12,7 +12,7 @@ spring:
     active: @spring.profiles.active@
   servlet:
     multipart:
-      max-file-size: 3MB
+      max-file-size: 25MB
       max-request-size: 10MB
 
 management:
