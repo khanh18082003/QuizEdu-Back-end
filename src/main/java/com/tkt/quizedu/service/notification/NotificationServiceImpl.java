@@ -142,43 +142,44 @@ public class NotificationServiceImpl implements INotificationService {
   @Override
   public NotificationResponse update(
       String id, NotificationRequest request, MultipartFile[] files) {
-    Notification notification =
-        notificationRepository
+    Notification notification = notificationRepository
             .findById(id)
-            .orElseThrow(
-                () -> new IllegalArgumentException("Notification not found with id: " + id));
+            .orElseThrow(() -> new IllegalArgumentException("Notification not found with id: " + id));
 
     notification.setDescription(request.description());
-    if (notification.getXPathFiles() != null) {
-      for (String xpath : notification.getXPathFiles()) {
-        s3Service.deleteFile(xpath);
+
+    // ✅ Chỉ xử lý file mới nếu có
+    if (files != null && files.length > 0) {
+      // Khởi tạo list nếu chưa có
+      if (notification.getXPathFiles() == null) {
+        notification.setXPathFiles(new ArrayList<>());
       }
-      notification.getXPathFiles().clear();
-    }
-    for (MultipartFile file : files) {
-      if (file != null && !file.isEmpty()) {
-        String xpath = s3Service.uploadFile(file);
-        notification.getXPathFiles().add(xpath);
+
+      // Thêm file mới vào danh sách hiện tại (không xóa file cũ)
+      for (MultipartFile file : files) {
+        if (file != null && !file.isEmpty()) {
+          String xpath = s3Service.uploadFile(file);
+          notification.getXPathFiles().add(xpath);
+        }
       }
     }
+
     notificationRepository.save(notification);
 
-    User teacher =
-        userRepository
+    User teacher = userRepository
             .findById(notification.getTeacherId())
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     UserBaseResponse userBaseResponse = userMapper.toUserBaseResponse(teacher);
-    // Builder response
+
     return NotificationResponse.builder()
-        .id(notification.getId())
-        .description(notification.getDescription())
-        .classRoom(classRoomRepository.findById(notification.getClassId()).orElse(null))
-        .teacher(userBaseResponse)
-        .xPathFiles(
-            notification.getXPathFiles() != null ? notification.getXPathFiles() : new ArrayList<>())
-        .createdAt(notification.getCreatedAt())
-        .updatedAt(notification.getUpdatedAt())
-        .build();
+            .id(notification.getId())
+            .description(notification.getDescription())
+            .classRoom(classRoomRepository.findById(notification.getClassId()).orElse(null))
+            .teacher(userBaseResponse)
+            .xPathFiles(notification.getXPathFiles() != null ? notification.getXPathFiles() : new ArrayList<>())
+            .createdAt(notification.getCreatedAt())
+            .updatedAt(notification.getUpdatedAt())
+            .build();
   }
 
   @Override
