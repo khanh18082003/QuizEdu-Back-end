@@ -1,3 +1,3 @@
 package com.tkt.quizedu.data.dto.request;
 
-public record NotificationRequest(String description, String classId) {}
+public record NotificationRequest(String description, String classId, boolean replaceFiles) {}

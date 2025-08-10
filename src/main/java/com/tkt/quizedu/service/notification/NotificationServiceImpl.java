@@ -146,24 +146,47 @@ public class NotificationServiceImpl implements INotificationService {
             .findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Notification not found with id: " + id));
 
+    // Cập nhật description
     notification.setDescription(request.description());
 
-    // ✅ Chỉ xử lý file mới nếu có
-    if (files != null && files.length > 0) {
+    // Xử lý files
+    boolean hasNewFiles = files != null && files.length > 0;
+
+    if (hasNewFiles) {
       // Khởi tạo list nếu chưa có
       if (notification.getXPathFiles() == null) {
         notification.setXPathFiles(new ArrayList<>());
       }
 
-      // Thêm file mới vào danh sách hiện tại (không xóa file cũ)
+      // Nếu replaceFiles = true, xóa file cũ
+      if (request.replaceFiles()) { // Sử dụng method accessor của record
+        if (notification.getXPathFiles() != null && !notification.getXPathFiles().isEmpty()) {
+          for (String xpath : notification.getXPathFiles()) {
+            try {
+              s3Service.deleteFile(xpath);
+            } catch (Exception e) {
+              log.warn("Failed to delete file: " + xpath, e);
+            }
+          }
+          notification.getXPathFiles().clear();
+        }
+      }
+
+      // Upload file mới
       for (MultipartFile file : files) {
         if (file != null && !file.isEmpty()) {
-          String xpath = s3Service.uploadFile(file);
-          notification.getXPathFiles().add(xpath);
+          try {
+            String xpath = s3Service.uploadFile(file);
+            notification.getXPathFiles().add(xpath);
+          } catch (Exception e) {
+            log.error("Failed to upload file: " + file.getOriginalFilename(), e);
+            throw new RuntimeException("Failed to upload file: " + file.getOriginalFilename());
+          }
         }
       }
     }
 
+    // Save và return response
     notificationRepository.save(notification);
 
     User teacher = userRepository
