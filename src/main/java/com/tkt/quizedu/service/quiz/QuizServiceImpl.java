@@ -813,21 +813,22 @@ public class QuizServiceImpl implements IQuizService {
 
   @Override
   public QuestionsOfQuizResponse getAllQuestionsByQuizId(String id) {
-    Quiz quiz = quizRepository
+    Quiz quiz =
+        quizRepository
             .findById(id)
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
 
     MultipleChoiceQuiz multipleChoiceQuiz =
-            multipleChoiceQuizRepository.findByQuizId(quiz.getId()).orElse(null);
+        multipleChoiceQuizRepository.findByQuizId(quiz.getId()).orElse(null);
     if (multipleChoiceQuiz != null) {
       List<MultipleChoiceQuiz.Question> questions = multipleChoiceQuiz.getQuestions();
       if (questions != null && !questions.isEmpty()) {
         questions.forEach(
-                question -> {
-                  if (question.getAnswers() != null) {
-                    Collections.shuffle(question.getAnswers());
-                  }
-                });
+            question -> {
+              if (question.getAnswers() != null) {
+                Collections.shuffle(question.getAnswers());
+              }
+            });
         multipleChoiceQuiz.setQuestions(questions);
       }
       Collections.shuffle(multipleChoiceQuiz.getQuestions());
@@ -836,13 +837,18 @@ public class QuizServiceImpl implements IQuizService {
     MatchingQuiz matchingQuiz = matchingQuizRepository.findByQuizId(quiz.getId());
     MatchingQuizDetailResponse matchingQuizResponse = null;
 
-    if (matchingQuiz != null && matchingQuiz.getMatchPairs() != null && !matchingQuiz.getMatchPairs().isEmpty()) {
+    if (matchingQuiz != null
+        && matchingQuiz.getMatchPairs() != null
+        && !matchingQuiz.getMatchPairs().isEmpty()) {
       // Group matching pairs by their types (Text-Text, Text-Image, etc.)
       Map<String, List<MatchingQuiz.MatchPair>> groupedPairs =
-              matchingQuiz.getMatchPairs().stream()
-                      .collect(Collectors.groupingBy(
-                              pair -> pair.getItemA().getMatchingType() + "-" + pair.getItemB().getMatchingType()
-                      ));
+          matchingQuiz.getMatchPairs().stream()
+              .collect(
+                  Collectors.groupingBy(
+                      pair ->
+                          pair.getItemA().getMatchingType()
+                              + "-"
+                              + pair.getItemB().getMatchingType()));
 
       // Create sections from the grouped pairs
       List<MatchingQuizDetailResponse.Section> sections = new ArrayList<>();
@@ -858,19 +864,25 @@ public class QuizServiceImpl implements IQuizService {
         Map<MatchingType, MatchingType> matchPair = Map.of(typeA, typeB);
 
         // Create lists for itemA and itemB in this section
-        List<MatchingQuizDetailResponse.MatchItemResponse> itemAList = pairs.stream()
-                .map(pair -> MatchingQuizDetailResponse.MatchItemResponse.builder()
-                        .id(pair.getId())
-                        .content(pair.getItemA().getContent())
-                        .matchingType(pair.getItemA().getMatchingType())
-                        .build())
+        List<MatchingQuizDetailResponse.MatchItemResponse> itemAList =
+            pairs.stream()
+                .map(
+                    pair ->
+                        MatchingQuizDetailResponse.MatchItemResponse.builder()
+                            .id(pair.getId())
+                            .content(pair.getItemA().getContent())
+                            .matchingType(pair.getItemA().getMatchingType())
+                            .build())
                 .collect(Collectors.toList());
 
-        List<MatchingQuizDetailResponse.MatchItemResponse> itemBList = pairs.stream()
-                .map(pair -> MatchingQuizDetailResponse.MatchItemResponse.builder()
-                        .content(pair.getItemB().getContent())
-                        .matchingType(pair.getItemB().getMatchingType())
-                        .build())
+        List<MatchingQuizDetailResponse.MatchItemResponse> itemBList =
+            pairs.stream()
+                .map(
+                    pair ->
+                        MatchingQuizDetailResponse.MatchItemResponse.builder()
+                            .content(pair.getItemB().getContent())
+                            .matchingType(pair.getItemB().getMatchingType())
+                            .build())
                 .collect(Collectors.toList());
 
         // Shuffle the items within each section
@@ -878,7 +890,8 @@ public class QuizServiceImpl implements IQuizService {
         Collections.shuffle(itemBList);
 
         // Create the section
-        MatchingQuizDetailResponse.Section section = MatchingQuizDetailResponse.Section.builder()
+        MatchingQuizDetailResponse.Section section =
+            MatchingQuizDetailResponse.Section.builder()
                 .matchPair(matchPair)
                 .itemA(itemAList)
                 .itemB(itemBList)
@@ -888,7 +901,8 @@ public class QuizServiceImpl implements IQuizService {
       }
 
       // Create the response with sections
-      matchingQuizResponse = MatchingQuizDetailResponse.builder()
+      matchingQuizResponse =
+          MatchingQuizDetailResponse.builder()
               .id(matchingQuiz.getId())
               .quizId(matchingQuiz.getQuizId())
               .timeLimit(matchingQuiz.getTimeLimit())
@@ -898,13 +912,13 @@ public class QuizServiceImpl implements IQuizService {
 
     // Build the final response
     return QuestionsOfQuizResponse.builder()
-            .quiz(quizMapper.toQuizBaseResponse(quiz))
-            .multipleChoiceQuiz(
-                    multipleChoiceQuiz != null
-                            ? multipleChoiceQuizMapper.toMultipleChoiceV2Response(multipleChoiceQuiz)
-                            : null)
-            .matchingQuiz(matchingQuizResponse)
-            .build();
+        .quiz(quizMapper.toQuizBaseResponse(quiz))
+        .multipleChoiceQuiz(
+            multipleChoiceQuiz != null
+                ? multipleChoiceQuizMapper.toMultipleChoiceV2Response(multipleChoiceQuiz)
+                : null)
+        .matchingQuiz(matchingQuizResponse)
+        .build();
   }
 
   @Override
