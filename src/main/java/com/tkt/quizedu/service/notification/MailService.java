@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
-import com.tkt.quizedu.service.s3.IS3Service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
@@ -16,6 +15,8 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
+
+import com.tkt.quizedu.service.s3.IS3Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.NonFinal;
@@ -38,12 +39,12 @@ public class MailService {
   String supportEmail;
 
   private void sendEmailWithAttachments(
-          String recipients,
-          String subject,
-          String template,
-          Map<String, Object> variables,
-          List<File> attachments
-  ) throws MessagingException, UnsupportedEncodingException {
+      String recipients,
+      String subject,
+      String template,
+      Map<String, Object> variables,
+      List<File> attachments)
+      throws MessagingException, UnsupportedEncodingException {
     MimeMessage mimeMessage = mailSender.createMimeMessage();
     MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
@@ -153,7 +154,8 @@ public class MailService {
       String files = extractValue(parts[4]);
 
       // Parse file URLs
-      List<String> fileUrls = Arrays.stream(files.replaceAll("[\\[\\]]", "").split(","))
+      List<String> fileUrls =
+          Arrays.stream(files.replaceAll("[\\[\\]]", "").split(","))
               .map(String::trim)
               .filter(s -> !s.isEmpty())
               .toList();
@@ -174,7 +176,8 @@ public class MailService {
 
       String subject = "Notification for class: " + classRoomName;
 
-      sendEmailWithAttachments(emailsString, subject, "notification-email.html", variables, attachments);
+      sendEmailWithAttachments(
+          emailsString, subject, "notification-email.html", variables, attachments);
     } catch (Exception e) {
       log.error("Failed to send notification email: {}", e.getMessage(), e);
     }

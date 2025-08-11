@@ -2,6 +2,7 @@ package com.tkt.quizedu.data.dto.response;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -21,8 +22,16 @@ public class MatchingQuizDetailResponse implements Serializable {
   String id;
   String quizId;
   int timeLimit;
-  List<MatchItemResponse> itemA;
-  List<MatchItemResponse> itemB;
+  List<Section> sections;
+
+  @Builder
+  @Getter
+  @Setter
+  public static class Section {
+    Map<MatchingType, MatchingType> matchPair;
+    List<MatchItemResponse> itemA;
+    List<MatchItemResponse> itemB;
+  }
 
   @Builder
   @Getter

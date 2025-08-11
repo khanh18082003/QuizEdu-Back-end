@@ -53,7 +53,7 @@ public class NotificationController {
   @ResponseStatus(HttpStatus.OK)
   SuccessApiResponse<NotificationResponse> update(
       @PathVariable String id,
-      @RequestPart MultipartFile[] files,
+      @RequestPart(required = false) MultipartFile[] files,
       @ModelAttribute NotificationRequest request) {
     return SuccessApiResponse.<NotificationResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())

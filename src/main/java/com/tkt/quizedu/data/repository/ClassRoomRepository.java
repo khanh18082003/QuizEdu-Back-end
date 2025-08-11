@@ -3,7 +3,6 @@ package com.tkt.quizedu.data.repository;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.Update;
@@ -11,7 +10,9 @@ import org.springframework.stereotype.Repository;
 
 import com.tkt.quizedu.data.base.BaseRepository;
 import com.tkt.quizedu.data.collection.ClassRoom;
+import com.tkt.quizedu.data.collection.Quiz;
 import com.tkt.quizedu.data.dto.response.ClassroomBaseResponse;
+import com.tkt.quizedu.data.dto.response.QuizBaseResponse;
 import com.tkt.quizedu.data.dto.response.UserBaseResponse;
 
 @Repository
@@ -111,8 +112,44 @@ public interface ClassRoomRepository extends BaseRepository<ClassRoom, String> {
             + "'created_at': '$students.created_at', "
             + "'updated_at': '$students.updated_at' "
             + "} }",
-        "{ '$skip': ?#{#pageable.offset} }",
-        "{ '$limit': ?#{#pageable.pageSize} }"
+        "{ '$skip': ?1 }",
+        "{ '$limit': ?2 }"
       })
-  List<UserBaseResponse> findAllStudentsInClassRoom(String classRoomId, Pageable pageable);
+  List<UserBaseResponse> findAllStudentsInClassRoom(String classRoomId, long skip, int limit);
+
+  @Aggregation(
+      pipeline = {
+        "{ '$match': { '_id': ?0 } }",
+        "{ '$addFields': { 'quizObjectIds': { '$map': { 'input': '$assigned_quiz_ids', 'as': 'id', 'in': { '$toObjectId': '$$id' } } } } }",
+        "{ '$lookup': { 'from': 'quiz', 'localField': 'quizObjectIds', 'foreignField': '_id', 'as': 'quizzes' } }",
+        "{ '$unwind': { 'path': '$quizzes', 'preserveNullAndEmptyArrays': false } }",
+        "{ '$match': { 'quizzes.is_public': true } }",
+        "{ '$addFields': { 'quizIdStr': { '$toString': '$quizzes._id' } } }", // Convert ObjectId to
+        // string
+        "{ '$lookup': { 'from': 'multipleChoiceQuiz', 'localField': 'quizIdStr', 'foreignField': 'quiz_id', 'as': 'multipleChoiceQuiz' } }",
+        "{ '$lookup': { 'from': 'matchingQuiz', 'localField': 'quizIdStr', 'foreignField': 'quiz_id', 'as': 'matchingQuiz' } }",
+        "{ '$project': { "
+            + "'id': '$quizzes._id', "
+            + "'name': '$quizzes.name', "
+            + "'description': '$quizzes.description', "
+            + "'is_active': '$quizzes.is_active', "
+            + "'is_public': '$quizzes.is_public', "
+            + "'number_of_multiple_choice_questions': { '$cond': [ { '$eq': [ { '$size': '$multipleChoiceQuiz' }, 0 ] }, 0, { '$size': { '$arrayElemAt': [ '$multipleChoiceQuiz.questions', 0 ] } } ] }, "
+            + "'number_of_matching_questions': { '$cond': [ { '$eq': [ { '$size': '$matchingQuiz' }, 0 ] }, 0, { '$size': { '$arrayElemAt': [ '$matchingQuiz.match_pairs', 0 ] } } ] } "
+            + "} }",
+        "{ '$sort': { 'name': 1 } }",
+        "{ '$skip': ?1 }",
+        "{ '$limit': ?2 }"
+      })
+  List<QuizBaseResponse> findAllByClassroomId(String classroomId, long skip, int limit);
+
+  @Aggregation(
+      pipeline = {
+        "{ '$match': { '_id': ?0 } }",
+        "{ '$addFields': { 'quizObjectIds': { '$map': { 'input': '$assigned_quiz_ids', 'as': 'id', 'in': { '$toObjectId': '$$id' } } } } }",
+        "{ '$lookup': { 'from': 'quiz', 'localField': 'quizObjectIds', 'foreignField': '_id', 'as': 'quizzes' } }",
+        "{ '$unwind': { 'path': '$quizzes', 'preserveNullAndEmptyArrays': false } }",
+        "{ '$match': { 'quizzes.is_public': true } }"
+      })
+  List<Quiz> countPublicQuizzesByClassroomId(String classroomId);
 }

@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,10 +19,7 @@ import com.tkt.quizedu.data.dto.response.*;
 import com.tkt.quizedu.data.mapper.MatchingQuizMapper;
 import com.tkt.quizedu.data.mapper.MultipleChoiceQuizMapper;
 import com.tkt.quizedu.data.mapper.QuizMapper;
-import com.tkt.quizedu.data.repository.MatchingQuizRepository;
-import com.tkt.quizedu.data.repository.MultipleChoiceQuizRepository;
-import com.tkt.quizedu.data.repository.QuizRepository;
-import com.tkt.quizedu.data.repository.QuizSessionRepository;
+import com.tkt.quizedu.data.repository.*;
 import com.tkt.quizedu.exception.QuizException;
 import com.tkt.quizedu.service.s3.IS3Service;
 import com.tkt.quizedu.utils.SecurityUtils;
@@ -46,6 +44,7 @@ public class QuizServiceImpl implements IQuizService {
   ObjectMapper objectMapper;
   IS3Service s3Service;
   QuizSessionRepository quizSessionRepository;
+  ClassRoomRepository classRoomRepository;
 
   @Override
   @Transactional
@@ -425,7 +424,7 @@ public class QuizServiceImpl implements IQuizService {
     QuizSession quizSession =
         quizSessionRepository
             .findById(quizSessionId)
-            .orElseThrow(() -> new RuntimeException("Quiz session not found"));
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     String quizId = quizSession.getQuizId();
     MultipleChoiceQuiz multipleChoiceQuiz =
         multipleChoiceQuizRepository.findByQuizId(quizId).orElse(null);
@@ -437,15 +436,23 @@ public class QuizServiceImpl implements IQuizService {
 
     // Lọc các câu hỏi mà user có tham gia trả lời
     return questions.stream()
-        .filter(
-            q ->
-                q.getAnswerParticipants() != null
-                    && q.getAnswerParticipants().stream()
-                        .anyMatch(
-                            ap ->
-                                userId.equals(ap.getUserId())
-                                    && quizSessionId.equals(ap.getQuizSessionId())))
-        .collect(Collectors.toList());
+        .map(
+            question -> {
+              List<MultipleChoiceQuiz.Question.AnswerParticipant> userAnswers =
+                  question.getAnswerParticipants().stream()
+                      .filter(
+                          answer ->
+                              answer.getUserId().equals(userId)
+                                  && answer.getQuizSessionId().equals(quizSessionId))
+                      .collect(Collectors.toList());
+
+              if (userAnswers.isEmpty()) {
+                return null; // Không có câu trả lời của user cho câu hỏi này
+              }
+              question.setAnswerParticipants(userAnswers);
+              return question;
+            })
+        .toList();
   }
 
   @Override
@@ -771,40 +778,60 @@ public class QuizServiceImpl implements IQuizService {
 
   @Override
   public PracticeResponse getQuizPractice(PracticeRequest request) {
-    MultipleChoiceQuizResponse multipleChoiceQuiz = null;
-    List<MultipleChoiceQuizResponse.QuestionResponse> questions = new ArrayList<>();
-    MatchingQuizResponse matchingQuiz = null;
+    // Create containers for questions
+    List<MultipleChoiceQuizResponse.QuestionResponse> mcQuestions = new ArrayList<>();
     List<MatchingQuizResponse.MatchPairResponse> matchPairs = new ArrayList<>();
 
+    // Collect all questions from the requested quizzes
     for (String quizId : request.quizIDs()) {
+      // Handle multiple choice questions
       MultipleChoiceQuiz mcQuiz = multipleChoiceQuizRepository.findByQuizId(quizId).orElse(null);
       if (mcQuiz != null) {
-        multipleChoiceQuiz = multipleChoiceQuizMapper.toMultipleChoiceQuizResponse(mcQuiz);
-        questions.addAll(multipleChoiceQuiz.getQuestions());
+        MultipleChoiceQuizResponse response =
+            multipleChoiceQuizMapper.toMultipleChoiceQuizResponse(mcQuiz);
+        if (response != null && response.getQuestions() != null) {
+          mcQuestions.addAll(response.getQuestions());
+        }
       }
+
+      // Handle matching questions
       MatchingQuiz mQuiz = matchingQuizRepository.findByQuizId(quizId);
       if (mQuiz != null) {
-        matchingQuiz = matchingQuizMapper.toMatchingQuizResponse(mQuiz);
-        matchPairs.addAll(matchingQuiz.getQuestions());
+        MatchingQuizResponse response = matchingQuizMapper.toMatchingQuizResponse(mQuiz);
+        if (response != null && response.getQuestions() != null) {
+          matchPairs.addAll(response.getQuestions());
+        }
       }
     }
-    // Xáo trộn câu hỏi và cặp ghép
-    questions.sort((q1, q2) -> Double.compare(Math.random(), Math.random()));
-    matchPairs.sort((p1, p2) -> Double.compare(Math.random(), Math.random()));
 
-    if (questions.size() > request.quantityMultipleChoice()) {
-      questions = questions.subList(0, request.quantityMultipleChoice());
+    // Shuffle questions using Collections.shuffle for better randomization
+    Collections.shuffle(mcQuestions);
+    Collections.shuffle(matchPairs);
+
+    // Limit number of questions according to request parameters
+    if (mcQuestions.size() > request.quantityMultipleChoice()) {
+      mcQuestions = mcQuestions.subList(0, request.quantityMultipleChoice());
     }
-    if (matchPairs.size() > request.quantityMultipleChoice()) {
-      matchPairs = matchPairs.subList(0, request.quantityMultipleChoice());
+
+    if (matchPairs.size() > request.quantityMatching()) {
+      matchPairs = matchPairs.subList(0, request.quantityMatching());
     }
-    assert multipleChoiceQuiz != null;
-    multipleChoiceQuiz.setQuestions(questions);
-    assert matchingQuiz != null;
-    matchingQuiz.setQuestions(matchPairs);
+
+    // Create response objects with proper null handling
+    MultipleChoiceQuizResponse multipleChoiceQuizResponse = null;
+    if (!mcQuestions.isEmpty()) {
+      multipleChoiceQuizResponse =
+          MultipleChoiceQuizResponse.builder().questions(mcQuestions).build();
+    }
+
+    MatchingQuizResponse matchingQuizResponse = null;
+    if (!matchPairs.isEmpty()) {
+      matchingQuizResponse = MatchingQuizResponse.builder().questions(matchPairs).build();
+    }
+
     return PracticeResponse.builder()
-        .multipleChoiceQuiz(multipleChoiceQuiz)
-        .matchingQuiz(matchingQuiz)
+        .multipleChoiceQuiz(multipleChoiceQuizResponse)
+        .matchingQuiz(matchingQuizResponse)
         .build();
   }
 
@@ -835,12 +862,12 @@ public class QuizServiceImpl implements IQuizService {
         quizRepository
             .findById(id)
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+
     MultipleChoiceQuiz multipleChoiceQuiz =
         multipleChoiceQuizRepository.findByQuizId(quiz.getId()).orElse(null);
     if (multipleChoiceQuiz != null) {
       List<MultipleChoiceQuiz.Question> questions = multipleChoiceQuiz.getQuestions();
       if (questions != null && !questions.isEmpty()) {
-        // Gán UUID cho từng câu hỏi nếu chưa có
         questions.forEach(
             question -> {
               if (question.getAnswers() != null) {
@@ -851,37 +878,84 @@ public class QuizServiceImpl implements IQuizService {
       }
       Collections.shuffle(multipleChoiceQuiz.getQuestions());
     }
+
     MatchingQuiz matchingQuiz = matchingQuizRepository.findByQuizId(quiz.getId());
-    MatchingQuizDetailResponse matchingQuizResponse =
-        MatchingQuizDetailResponse.builder()
-            .id(matchingQuiz.getId())
-            .quizId(matchingQuiz.getQuizId())
-            .timeLimit(matchingQuiz.getTimeLimit())
-            .itemA(
-                new ArrayList<>(
-                    matchingQuiz.getMatchPairs().stream()
-                        .map(
-                            pair ->
-                                MatchingQuizDetailResponse.MatchItemResponse.builder()
-                                    .id(pair.getId())
-                                    .content(pair.getItemA().getContent())
-                                    .matchingType(pair.getItemA().getMatchingType())
-                                    .build())
-                        .toList()))
-            .itemB(
-                new ArrayList<>(
-                    matchingQuiz.getMatchPairs().stream()
-                        .map(
-                            pair ->
-                                MatchingQuizDetailResponse.MatchItemResponse.builder()
-                                    .content(pair.getItemB().getContent())
-                                    .matchingType(pair.getItemB().getMatchingType())
-                                    .build())
-                        .toList()))
-            .build();
-    Collections.shuffle(matchingQuizResponse.getItemA());
-    Collections.shuffle(matchingQuizResponse.getItemB());
-    // Nếu có các loại quiz khác, thêm logic lấy tương ứng
+    MatchingQuizDetailResponse matchingQuizResponse = null;
+
+    if (matchingQuiz != null
+        && matchingQuiz.getMatchPairs() != null
+        && !matchingQuiz.getMatchPairs().isEmpty()) {
+      // Group matching pairs by their types (Text-Text, Text-Image, etc.)
+      Map<String, List<MatchingQuiz.MatchPair>> groupedPairs =
+          matchingQuiz.getMatchPairs().stream()
+              .collect(
+                  Collectors.groupingBy(
+                      pair ->
+                          pair.getItemA().getMatchingType()
+                              + "-"
+                              + pair.getItemB().getMatchingType()));
+
+      // Create sections from the grouped pairs
+      List<MatchingQuizDetailResponse.Section> sections = new ArrayList<>();
+
+      for (Map.Entry<String, List<MatchingQuiz.MatchPair>> entry : groupedPairs.entrySet()) {
+        List<MatchingQuiz.MatchPair> pairs = entry.getValue();
+
+        // Determine the matching types
+        MatchingType typeA = pairs.get(0).getItemA().getMatchingType();
+        MatchingType typeB = pairs.get(0).getItemB().getMatchingType();
+
+        // Create match type pair mapping
+        Map<MatchingType, MatchingType> matchPair = Map.of(typeA, typeB);
+
+        // Create lists for itemA and itemB in this section
+        List<MatchingQuizDetailResponse.MatchItemResponse> itemAList =
+            pairs.stream()
+                .map(
+                    pair ->
+                        MatchingQuizDetailResponse.MatchItemResponse.builder()
+                            .id(pair.getId())
+                            .content(pair.getItemA().getContent())
+                            .matchingType(pair.getItemA().getMatchingType())
+                            .build())
+                .collect(Collectors.toList());
+
+        List<MatchingQuizDetailResponse.MatchItemResponse> itemBList =
+            pairs.stream()
+                .map(
+                    pair ->
+                        MatchingQuizDetailResponse.MatchItemResponse.builder()
+                            .content(pair.getItemB().getContent())
+                            .matchingType(pair.getItemB().getMatchingType())
+                            .build())
+                .collect(Collectors.toList());
+
+        // Shuffle the items within each section
+        Collections.shuffle(itemAList);
+        Collections.shuffle(itemBList);
+
+        // Create the section
+        MatchingQuizDetailResponse.Section section =
+            MatchingQuizDetailResponse.Section.builder()
+                .matchPair(matchPair)
+                .itemA(itemAList)
+                .itemB(itemBList)
+                .build();
+
+        sections.add(section);
+      }
+
+      // Create the response with sections
+      matchingQuizResponse =
+          MatchingQuizDetailResponse.builder()
+              .id(matchingQuiz.getId())
+              .quizId(matchingQuiz.getQuizId())
+              .timeLimit(matchingQuiz.getTimeLimit())
+              .sections(sections)
+              .build();
+    }
+
+    // Build the final response
     return QuestionsOfQuizResponse.builder()
         .quiz(quizMapper.toQuizBaseResponse(quiz))
         .multipleChoiceQuiz(
@@ -889,6 +963,26 @@ public class QuizServiceImpl implements IQuizService {
                 ? multipleChoiceQuizMapper.toMultipleChoiceV2Response(multipleChoiceQuiz)
                 : null)
         .matchingQuiz(matchingQuizResponse)
+        .build();
+  }
+
+  @Override
+  public PaginationResponse<QuizBaseResponse> getAllQuizzesIsPublic(
+      String classroomId, int page, int pageSize) {
+    Pageable pageable = PageRequest.of(page - 1, pageSize);
+    List<QuizBaseResponse> quizzesIsPublic =
+        classRoomRepository.findAllByClassroomId(
+            classroomId, pageable.getOffset(), pageable.getPageSize());
+    long total = classRoomRepository.countPublicQuizzesByClassroomId(classroomId).size();
+
+    Page<QuizBaseResponse> quizPage = new PageImpl<>(quizzesIsPublic, pageable, total);
+
+    return PaginationResponse.<QuizBaseResponse>builder()
+        .data(quizPage.getContent())
+        .page(page)
+        .pageSize(pageSize)
+        .pages(quizPage.getTotalPages())
+        .total(quizPage.getTotalElements())
         .build();
   }
 }

@@ -7,12 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.tkt.quizedu.data.collection.ClassRoom;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tkt.quizedu.data.collection.ClassRoom;
 import com.tkt.quizedu.data.collection.Notification;
 import com.tkt.quizedu.data.collection.User;
 import com.tkt.quizedu.data.constant.ErrorCode;
@@ -60,18 +60,30 @@ public class NotificationServiceImpl implements INotificationService {
       }
     }
     notification.setTeacherId(SecurityUtils.getUserDetail().getUser().getId());
-    String teacherName = SecurityUtils.getUserDetail().getUser().getFirstName()+ " " + SecurityUtils.getUserDetail().getUser().getLastName();
+    String teacherName =
+        SecurityUtils.getUserDetail().getUser().getFirstName()
+            + " "
+            + SecurityUtils.getUserDetail().getUser().getLastName();
     notificationRepository.save(notification);
     User teacher =
         userRepository
             .findById(notification.getTeacherId())
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     UserBaseResponse userBaseResponse = userMapper.toUserBaseResponse(teacher);
-    ClassRoom classRoom = classRoomRepository.findById(request.classId()).orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
+    ClassRoom classRoom =
+        classRoomRepository
+            .findById(request.classId())
+            .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     List<User> students = userRepository.findAllById(classRoom.getStudentIds());
     String emailList = String.join(",", students.stream().map(User::getEmail).toList());
-    String message = String.format("emailList=%s;teacherName=%s;className=%s;notification=%s;files=%s", emailList, teacherName,
-        classRoom.getName(), notification.getDescription(), notification.getXPathFiles().toString());
+    String message =
+        String.format(
+            "emailList=%s;teacherName=%s;className=%s;notification=%s;files=%s",
+            emailList,
+            teacherName,
+            classRoom.getName(),
+            notification.getDescription(),
+            notification.getXPathFiles().toString());
     kafkaTemplate.send("send-notification-to-emails", message);
     return NotificationResponse.builder()
         .id(notification.getId())
@@ -136,19 +148,47 @@ public class NotificationServiceImpl implements INotificationService {
             .orElseThrow(
                 () -> new IllegalArgumentException("Notification not found with id: " + id));
 
+    // Cập nhật description
     notification.setDescription(request.description());
-    if (notification.getXPathFiles() != null) {
-      for (String xpath : notification.getXPathFiles()) {
-        s3Service.deleteFile(xpath);
+
+    // Xử lý files
+    boolean hasNewFiles = files != null && files.length > 0;
+
+    if (hasNewFiles) {
+      // Khởi tạo list nếu chưa có
+      if (notification.getXPathFiles() == null) {
+        notification.setXPathFiles(new ArrayList<>());
       }
-      notification.getXPathFiles().clear();
-    }
-    for (MultipartFile file : files) {
-      if (file != null && !file.isEmpty()) {
-        String xpath = s3Service.uploadFile(file);
-        notification.getXPathFiles().add(xpath);
+
+      // Nếu replaceFiles = true, xóa file cũ
+      if (request.replaceFiles()) { // Sử dụng method accessor của record
+        if (notification.getXPathFiles() != null && !notification.getXPathFiles().isEmpty()) {
+          for (String xpath : notification.getXPathFiles()) {
+            try {
+              s3Service.deleteFile(xpath);
+            } catch (Exception e) {
+              log.warn("Failed to delete file: " + xpath, e);
+            }
+          }
+          notification.getXPathFiles().clear();
+        }
+      }
+
+      // Upload file mới
+      for (MultipartFile file : files) {
+        if (file != null && !file.isEmpty()) {
+          try {
+            String xpath = s3Service.uploadFile(file);
+            notification.getXPathFiles().add(xpath);
+          } catch (Exception e) {
+            log.error("Failed to upload file: " + file.getOriginalFilename(), e);
+            throw new RuntimeException("Failed to upload file: " + file.getOriginalFilename());
+          }
+        }
       }
     }
+
+    // Save và return response
     notificationRepository.save(notification);
 
     User teacher =
@@ -156,7 +196,7 @@ public class NotificationServiceImpl implements INotificationService {
             .findById(notification.getTeacherId())
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
     UserBaseResponse userBaseResponse = userMapper.toUserBaseResponse(teacher);
-    // Builder response
+
     return NotificationResponse.builder()
         .id(notification.getId())
         .description(notification.getDescription())
@@ -171,9 +211,7 @@ public class NotificationServiceImpl implements INotificationService {
 
   @Override
   public List<NotificationResponse> getAllByClassId(String classId) {
-    Notification noti =
-        notificationRepository
-            .findAllByClassId(classId).get(0);
+    Notification noti = notificationRepository.findAllByClassId(classId).get(0);
     User teacher =
         userRepository
             .findById(noti.getTeacherId())

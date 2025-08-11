@@ -190,9 +190,10 @@ public class QuizController {
   @GetMapping("/practice")
   @ResponseStatus(HttpStatus.OK)
   public SuccessApiResponse<PracticeResponse> getQuizPractice(
-      @RequestParam List<String> quizIDs,
-      @RequestParam(defaultValue = "0") int quantityMultipleChoice,
-      @RequestParam(defaultValue = "0") int quantityMatching) {
+      @RequestParam(name = "quiz_ids") List<String> quizIDs,
+      @RequestParam(name = "quantity_multiple_choice", defaultValue = "0")
+          int quantityMultipleChoice,
+      @RequestParam(name = "quantity_matching", defaultValue = "0") int quantityMatching) {
 
     PracticeRequest request =
         new PracticeRequest(quizIDs, quantityMultipleChoice, quantityMatching);
@@ -215,6 +216,19 @@ public class QuizController {
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
         .status(HttpStatus.OK.value())
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
+  }
+
+  @GetMapping("/all")
+  SuccessApiResponse<PaginationResponse<QuizBaseResponse>> getAllQuizzesIsPublic(
+      @RequestParam(name = "classroom_id") String classroomId,
+      @RequestParam(name = "page", defaultValue = "1") int page,
+      @RequestParam(name = "page_size", defaultValue = "5") int pageSize) {
+    return SuccessApiResponse.<PaginationResponse<QuizBaseResponse>>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(quizService.getAllQuizzesIsPublic(classroomId, page, pageSize))
         .build();
   }
 }

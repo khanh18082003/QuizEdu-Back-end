@@ -6,10 +6,7 @@ import java.util.UUID;
 import com.tkt.quizedu.data.collection.MatchingQuiz;
 import com.tkt.quizedu.data.collection.MultipleChoiceQuiz;
 import com.tkt.quizedu.data.dto.request.*;
-import com.tkt.quizedu.data.dto.response.PaginationResponse;
-import com.tkt.quizedu.data.dto.response.PracticeResponse;
-import com.tkt.quizedu.data.dto.response.QuestionsOfQuizResponse;
-import com.tkt.quizedu.data.dto.response.QuizResponse;
+import com.tkt.quizedu.data.dto.response.*;
 
 public interface IQuizService {
   QuizResponse save(QuizCreationRequest request);
@@ -52,4 +49,7 @@ public interface IQuizService {
   void updateQuiz(String quizId, UpdateQuizRequest request);
 
   QuestionsOfQuizResponse getAllQuestionsByQuizId(String id);
+
+  PaginationResponse<QuizBaseResponse> getAllQuizzesIsPublic(
+      String classroomId, int page, int pageSize);
 }
