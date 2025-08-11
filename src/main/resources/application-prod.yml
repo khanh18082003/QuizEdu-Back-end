@@ -1,0 +1,80 @@
+# application-prod.yml
+# environment: prod
+spring:
+  config:
+    activate:
+      on-profile: prod
+  data:
+    mongodb:
+      uri: mongodb://admin:secure@${MONGODB_HOST:localhost}:27017/quizlet?authSource=admin
+      auto-index-creation: true
+      field-naming-strategy: org.springframework.data.mapping.model.SnakeCaseFieldNamingStrategy
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: 6379
+  mail:
+    from: QuizEdu
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  cache:
+    type: redis
+  kafka:
+    bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:29092}
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+
+# swagger config
+openapi:
+  service:
+    api-docs: quiz-edu-api-docs
+    title: Quiz-edu API
+    version: v1.0
+    server: http://${HOST}:${server.port}/api/v1.0
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+# jwt secret key
+jwt:
+  issuer: quiz-edu
+  expirationTime: 300
+  expirationDay: 30
+  accessToken: ${ACCESS_TOKEN_SECRET}
+  refreshToken: ${REFRESH_TOKEN_SECRET}
+
+outbound:
+  google:
+    identity:
+      url: https://oauth2.googleapis.com
+      client-id: ${GOOGLE_CLIENT_ID}
+      client-secret: ${GOOGLE_CLIENT_SECRET}
+      redirect-uri: http://localhost:5173/authentication/oauth2
+      grant-type: authorization_code
+    user:
+      url: https://www.googleapis.com
+
+aws:
+  s3:
+    access-key: ${AWS_ACCESS_KEY}
+    secret-key: ${AWS_SECRET_KEY}
+    bucket-name: quiz-edu-service
+    base-url: https://quiz-edu-service.s3.ap-northeast-1.amazonaws.com/
+
+admin:
+  email: locnam0312@gmail.com
+  password: Admin123@
+  displayName: Administrator
+
+backend:
+  host: ${HOST}
