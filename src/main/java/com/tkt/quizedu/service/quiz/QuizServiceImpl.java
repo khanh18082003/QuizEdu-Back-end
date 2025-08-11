@@ -687,8 +687,7 @@ public class QuizServiceImpl implements IQuizService {
           throw new RuntimeException("Multiple choice quiz already exists");
         }
 
-        MultipleChoiceQuizRequest multipleChoiceQuizRequest =
-            objectMapper.convertValue(request.data(), MultipleChoiceQuizRequest.class);
+        MultipleChoiceQuizRequest multipleChoiceQuizRequest = request.multipleChoiceQuizRequest();
 
         multipleChoiceQuiz =
             multipleChoiceQuizMapper.toMultipleChoiceQuiz(multipleChoiceQuizRequest);
@@ -701,14 +700,60 @@ public class QuizServiceImpl implements IQuizService {
           throw new RuntimeException("Matching quiz already exists");
         }
 
-        MatchingQuizRequest matchingQuizRequest =
-            objectMapper.convertValue(request.data(), MatchingQuizRequest.class);
+        MatchingQuizRequest matchingQuizRequest =  request.matchingQuizRequest();
+        matchingQuiz= new MatchingQuiz();
+        matchingQuiz.setQuizId(quiz.getId());
+        matchingQuiz.setTimeLimit(matchingQuizRequest.timeLimit());
 
-        matchingQuiz = matchingQuizMapper.toMatchingQuiz(matchingQuizRequest);
-        matchingQuiz.setQuizId(quizId);
-        matchingQuiz.setMatchPairs(
-            matchingQuizMapper.toMatchPairList(matchingQuizRequest.questions()));
+        List<MatchingQuiz.MatchPair> pairs =
+                matchingQuizRequest.questions().stream()
+                        .map(
+                                req -> {
+                                  MatchingQuiz.MatchPair pair = new MatchingQuiz.MatchPair();
+                                  pair.setId(UUID.randomUUID());
+
+                                  // Handle itemA
+                                  String contentA;
+                                  MatchingType typeA;
+                                  if (req.getFileContentA() != null && !req.getFileContentA().isEmpty()) {
+                                    contentA = s3Service.uploadFile(req.getFileContentA());
+                                    typeA = MatchingType.IMAGE;
+                                  } else if (req.getContentA() != null && !req.getContentA().isBlank()) {
+                                    contentA = req.getContentA();
+                                    typeA = MatchingType.TEXT;
+                                  } else {
+                                    throw new QuizException(ErrorCode.MESSAGE_INVALID_ID);
+                                  }
+
+                                  // Handle itemB
+                                  String contentB;
+                                  MatchingType typeB;
+                                  if (req.getFileContentB() != null && !req.getFileContentB().isEmpty()) {
+                                    contentB = s3Service.uploadFile(req.getFileContentB());
+                                    typeB = MatchingType.IMAGE;
+                                  } else if (req.getContentB() != null && !req.getContentB().isBlank()) {
+                                    contentB = req.getContentB();
+                                    typeB = MatchingType.TEXT;
+                                  } else {
+                                    throw new QuizException(ErrorCode.MESSAGE_INVALID_ID);
+                                  }
+
+                                  pair.setItemA(new MatchingQuiz.MatchItem(contentA, typeA));
+                                  pair.setItemB(new MatchingQuiz.MatchItem(contentB, typeB));
+                                  pair.setPoints(req.getPoints());
+
+                                  return pair;
+                                })
+                        .toList();
+
+        matchingQuiz.setMatchPairs(pairs);
         matchingQuizRepository.save(matchingQuiz);
+
+//        matchingQuiz = matchingQuizMapper.toMatchingQuiz(matchingQuizRequest);
+//        matchingQuiz.setQuizId(quizId);
+//        matchingQuiz.setMatchPairs(
+//            matchingQuizMapper.toMatchPairList(matchingQuizRequest.questions()));
+//        matchingQuizRepository.save(matchingQuiz);
       }
 
       default -> throw new IllegalArgumentException("Unsupported quiz type: " + request.type());
