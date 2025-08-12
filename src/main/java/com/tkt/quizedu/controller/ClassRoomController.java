@@ -149,4 +149,15 @@ public class ClassRoomController {
         .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
         .build();
   }
+
+    @DeleteMapping("/{classRoomId}/quizSessions/{quizId}")
+    SuccessApiResponse<Void> deleteQuizFromClassroom(
+        @PathVariable String classRoomId, @PathVariable String quizId) {
+    classRoomService.deleteQuizFromClassroom(classRoomId, quizId);
+    return SuccessApiResponse.<Void>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .build();
+    }
 }

@@ -42,4 +42,6 @@ public interface QuizSessionRepository extends BaseRepository<QuizSession, Strin
 
   @Aggregation(pipeline = {"{ '$match': { 'class_id': ?0 } }"})
   List<QuizSession> totalQuizSessionByClassId(String classId);
+
+  List<QuizSession> findByQuizIdAndClassId(String quizId, String classId);
 }
