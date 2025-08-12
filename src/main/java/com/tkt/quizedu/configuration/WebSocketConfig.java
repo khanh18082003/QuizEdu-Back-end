@@ -19,8 +19,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   private final JwtHandshakeInterceptor jwtHandshakeInterceptor;
 
-    @Value("${backend.host}")
-    private String host;
+  @Value("${backend.host}")
+  private String host;
 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry config) {

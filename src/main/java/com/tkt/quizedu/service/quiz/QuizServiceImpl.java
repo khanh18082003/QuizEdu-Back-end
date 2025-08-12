@@ -446,9 +446,6 @@ public class QuizServiceImpl implements IQuizService {
                                   && answer.getQuizSessionId().equals(quizSessionId))
                       .collect(Collectors.toList());
 
-              if (userAnswers.isEmpty()) {
-                return null; // Không có câu trả lời của user cho câu hỏi này
-              }
               question.setAnswerParticipants(userAnswers);
               return question;
             })

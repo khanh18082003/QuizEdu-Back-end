@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tkt.quizedu.data.collection.*;
 import com.tkt.quizedu.data.constant.ErrorCode;
+import com.tkt.quizedu.data.constant.SessionStatus;
 import com.tkt.quizedu.data.dto.request.ClassRoomRequest;
 import com.tkt.quizedu.data.dto.request.InviteStudentsToClassRoomRequest;
 import com.tkt.quizedu.data.dto.response.*;
@@ -166,31 +167,41 @@ public class ClassRoomServiceImpl implements IClassRoomService {
                 .build();
     }
 
-    @Override
-    public PaginationResponse<QuizDetailResponse> getQuizSessionsByClassRoomId(
-            String classRoomId, int page, int pageSize) {
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
+  @Override
+  public PaginationResponse<QuizDetailResponse> getQuizSessionsByClassRoomId(
+      String classRoomId, int page, int pageSize, String... filters) {
+    Pageable pageable = PageRequest.of(page - 1, pageSize);
 
-        // Use the same aggregation pipeline for both operations, just without pagination for counting
-        List<QuizSession> allQuizSessions =
-                quizSessionRepository.totalQuizSessionByClassId(classRoomId);
-        int totalQuizSessions = allQuizSessions.size();
-
-        List<QuizDetailResponse> quizDetailResponseList =
-                quizSessionRepository.findAllQuizSessionByClassId(
-                        classRoomId, pageable.getOffset(), pageable.getPageSize());
-
-        Page<QuizDetailResponse> quizDetailResponsePage =
-                new PageImpl<>(quizDetailResponseList, pageable, totalQuizSessions);
-
-        return PaginationResponse.<QuizDetailResponse>builder()
-                .page(quizDetailResponsePage.getNumber() + 1)
-                .pageSize(quizDetailResponsePage.getSize())
-                .pages(quizDetailResponsePage.getTotalPages())
-                .total(quizDetailResponsePage.getTotalElements())
-                .data(quizDetailResponsePage.getContent())
-                .build();
+    // Parse status filter if provided
+    SessionStatus statusFilter = null;
+    if (filters != null && filters.length > 0 && filters[0] != null && !filters[0].isEmpty()) {
+      try {
+        statusFilter = SessionStatus.valueOf(filters[0]);
+      } catch (IllegalArgumentException e) {
+        log.warn("Invalid status filter: {}", filters[0]);
+      }
     }
+
+    // Use the same aggregation pipeline for both operations, with status filtering
+    List<QuizSession> allQuizSessions =
+        quizSessionRepository.totalQuizSessionByClassId(classRoomId, statusFilter);
+    int totalQuizSessions = allQuizSessions.size();
+
+    List<QuizDetailResponse> quizDetailResponseList =
+        quizSessionRepository.findAllQuizSessionByClassId(
+            classRoomId, pageable.getOffset(), pageable.getPageSize(), statusFilter);
+
+    Page<QuizDetailResponse> quizDetailResponsePage =
+        new PageImpl<>(quizDetailResponseList, pageable, totalQuizSessions);
+
+    return PaginationResponse.<QuizDetailResponse>builder()
+        .page(quizDetailResponsePage.getNumber() + 1)
+        .pageSize(quizDetailResponsePage.getSize())
+        .pages(quizDetailResponsePage.getTotalPages())
+        .total(quizDetailResponsePage.getTotalElements())
+        .data(quizDetailResponsePage.getContent())
+        .build();
+  }
 
     @Override
     public void inviteStudentsToClassRoom(

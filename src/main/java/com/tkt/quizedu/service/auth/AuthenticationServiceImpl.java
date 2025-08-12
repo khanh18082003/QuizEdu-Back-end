@@ -281,7 +281,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
   private void handleInactiveUser(User user) {
     if (user != null && !user.isActive()) {
       sendVerificationCode(user.getEmail(), user.getFirstName(), user.getLastName());
-      throw new QuizException(ErrorCode.MESSAGE_UNAUTHENTICATED);
+      throw new QuizException(ErrorCode.MESSAGE_UN_VERIFICATION_USER);
     }
   }
 

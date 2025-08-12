@@ -30,7 +30,7 @@ public interface IClassRoomService {
       String classRoomId, int page, int pageSize);
 
   PaginationResponse<QuizDetailResponse> getQuizSessionsByClassRoomId(
-      String classRoomId, int page, int pageSize);
+      String classRoomId, int page, int pageSize, String... filters);
 
   void inviteStudentsToClassRoom(InviteStudentsToClassRoomRequest inviteStudentsToClassRoomRequest);
 

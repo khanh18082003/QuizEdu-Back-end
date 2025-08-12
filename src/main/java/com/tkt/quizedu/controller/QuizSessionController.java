@@ -137,4 +137,15 @@ public class QuizSessionController {
         .data(response)
         .build();
   }
+
+  @GetMapping("/student/scores")
+  SuccessApiResponse<List<ScoreQuizSessionStudentResponse>> getScoresByStudentId() {
+    List<ScoreQuizSessionStudentResponse> response = quizSessionService.getScoresByStudentId();
+    return SuccessApiResponse.<List<ScoreQuizSessionStudentResponse>>builder()
+        .code(ErrorCode.MESSAGE_SUCCESS.getCode())
+        .status(HttpStatus.OK.value())
+        .message(Translator.toLocale(ErrorCode.MESSAGE_SUCCESS.getCode()))
+        .data(response)
+        .build();
+  }
 }

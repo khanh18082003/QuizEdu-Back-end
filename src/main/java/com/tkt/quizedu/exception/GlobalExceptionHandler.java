@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import jakarta.validation.ConstraintViolation;
 
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -59,6 +60,23 @@ public class GlobalExceptionHandler {
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .path(request.getDescription(false).replace("uri=", ""))
                 .message(runtimeException.getMessage())
+                .build());
+  }
+
+  @ExceptionHandler(org.springframework.dao.DuplicateKeyException.class)
+  ResponseEntity<ErrorApiResponse> handleDuplicateKeyException(
+      DuplicateKeyException duplicateKeyException, WebRequest request) {
+    log.error(
+        "Duplicate key exception: {}", duplicateKeyException.getMessage(), duplicateKeyException);
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(
+            ErrorApiResponse.builder()
+                .timeStamp(LocalDateTime.now())
+                .code(ErrorCode.MESSAGE_DUPLICATE_EMAIL.getCode())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .message(Translator.toLocale(ErrorCode.MESSAGE_DUPLICATE_EMAIL.getCode()))
                 .build());
   }
 
