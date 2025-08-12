@@ -58,9 +58,9 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    image: khanhnguyen1808/booking-back-end-service:latest
+    image: khanhnguyen1808/quiz-edu-back-end
     env_file:
-      - prod.env
+      - env.env
     ports:
       - "8080:8080"
     networks:

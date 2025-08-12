@@ -1,5 +1,6 @@
 package com.tkt.quizedu.configuration;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -18,9 +19,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   private final JwtHandshakeInterceptor jwtHandshakeInterceptor;
 
+    @Value("${backend.host}")
+    private String host;
+
   @Override
   public void configureMessageBroker(MessageBrokerRegistry config) {
-    config.enableSimpleBroker("/topic").setHeartbeatValue(new long[] {10000, 10000});
+    config.enableSimpleBroker("/topic");
     config.setApplicationDestinationPrefixes("/app");
   }
 
@@ -28,7 +32,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry
         .addEndpoint("/ws-session")
-        .setAllowedOrigins("http://localhost:5173")
+        .setAllowedOrigins("http://localhost:5173", "http://" + host + ":5173")
         .withSockJS()
         .setHeartbeatTime(10000);
   }

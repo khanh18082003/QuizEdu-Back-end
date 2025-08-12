@@ -2,6 +2,7 @@ package com.tkt.quizedu.configuration;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,6 +35,9 @@ public class SecurityConfig {
 
   private final CustomUserDetailService customUserDetailService;
   private final CustomPreFilterRequest customPreFilterRequest;
+
+  @Value("${backend.host}")
+  private String host;
 
   private static final String[] NO_AUTHENTICATION_ENDPOINTS = {
     "/users/student",
@@ -73,7 +77,7 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+    configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://" + host + ":5173"));
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(List.of("*"));
     configuration.setAllowCredentials(true);
