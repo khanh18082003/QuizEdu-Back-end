@@ -75,3 +75,6 @@ admin:
   email: locnam0312@gmail.com
   password: Admin123@
   displayName: Administrator
+
+backend:
+  host: ${HOST}

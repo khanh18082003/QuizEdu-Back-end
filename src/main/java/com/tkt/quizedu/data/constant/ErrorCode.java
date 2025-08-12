@@ -33,6 +33,7 @@ public enum ErrorCode {
   MESSAGE_QUIZ_SESSION_ACTIVE("M114", HttpStatus.BAD_REQUEST),
   MESSAGE_NOT_PARTICIPATED("M115", HttpStatus.BAD_REQUEST),
   MESSAGE_ALREADY_SUBMITTED("M116", HttpStatus.BAD_REQUEST),
+  MESSAGE_QUIZ_EXISTED("M118", HttpStatus.FOUND),
   ;
 
   private final String code;
