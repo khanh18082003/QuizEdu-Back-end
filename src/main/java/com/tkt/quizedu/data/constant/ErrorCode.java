@@ -16,6 +16,7 @@ public enum ErrorCode {
   MESSAGE_INVALID_ARGUMENT("M004", HttpStatus.BAD_REQUEST),
 
   // Authentication Errors and Authorization Errors
+  MESSAGE_DUPLICATE_EMAIL("M099", HttpStatus.BAD_REQUEST),
   MESSAGE_UNAUTHENTICATED("M100", HttpStatus.UNAUTHORIZED),
   MESSAGE_UNAUTHORIZED("M101", HttpStatus.FORBIDDEN),
   MESSAGE_INVALID_ID("M102", HttpStatus.NOT_FOUND),
@@ -33,7 +34,7 @@ public enum ErrorCode {
   MESSAGE_QUIZ_SESSION_ACTIVE("M114", HttpStatus.BAD_REQUEST),
   MESSAGE_NOT_PARTICIPATED("M115", HttpStatus.BAD_REQUEST),
   MESSAGE_ALREADY_SUBMITTED("M116", HttpStatus.BAD_REQUEST),
-  ;
+  MESSAGE_UN_VERIFICATION_USER("M117", HttpStatus.BAD_REQUEST);
 
   private final String code;
   private final HttpStatus statusCode;

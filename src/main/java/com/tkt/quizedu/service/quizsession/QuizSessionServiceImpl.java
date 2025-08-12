@@ -130,11 +130,6 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
             .findById(request.quizSessionId())
             .orElseThrow(() -> new QuizException(ErrorCode.MESSAGE_INVALID_ID));
 
-    // Validate quiz session status
-    if (quizSession.getStatus() != SessionStatus.ACTIVE) {
-      throw new QuizException(ErrorCode.MESSAGE_INVALID_SESSION_STATUS);
-    }
-
     // Check if user has already submitted
     QuizSession.Participant participant =
         quizSession.getParticipants().stream()
@@ -373,5 +368,14 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
         quizSessionId);
 
     return scoreboard;
+  }
+
+  @Override
+  public List<ScoreQuizSessionStudentResponse> getScoresByStudentId() {
+      CustomUserDetail userDetail = SecurityUtils.getUserDetail();
+      if (userDetail == null) {
+          throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
+      }
+    return quizSessionRepository.findByStudentId(userDetail.getUser().getId());
   }
 }

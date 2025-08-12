@@ -24,4 +24,6 @@ public interface IQuizSessionService {
   List<UserBaseResponse> getStudentsInQuizSession(String quizSessionId);
 
   List<UserSubmitResponse> getScoreboard(String quizSessionId);
+
+  List<ScoreQuizSessionStudentResponse> getScoresByStudentId();
 }
