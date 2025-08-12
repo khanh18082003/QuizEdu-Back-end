@@ -191,17 +191,17 @@ public class ClassRoomServiceImpl implements IClassRoomService {
         quizSessionRepository.findAllQuizSessionByClassId(
             classRoomId, pageable.getOffset(), pageable.getPageSize(), statusFilter);
 
-    Page<QuizDetailResponse> quizDetailResponsePage =
-        new PageImpl<>(quizDetailResponseList, pageable, totalQuizSessions);
+        Page<QuizDetailResponse> quizDetailResponsePage =
+                new PageImpl<>(quizDetailResponseList, pageable, totalQuizSessions);
 
-    return PaginationResponse.<QuizDetailResponse>builder()
-        .page(quizDetailResponsePage.getNumber() + 1)
-        .pageSize(quizDetailResponsePage.getSize())
-        .pages(quizDetailResponsePage.getTotalPages())
-        .total(quizDetailResponsePage.getTotalElements())
-        .data(quizDetailResponsePage.getContent())
-        .build();
-  }
+        return PaginationResponse.<QuizDetailResponse>builder()
+                .page(quizDetailResponsePage.getNumber() + 1)
+                .pageSize(quizDetailResponsePage.getSize())
+                .pages(quizDetailResponsePage.getTotalPages())
+                .total(quizDetailResponsePage.getTotalElements())
+                .data(quizDetailResponsePage.getContent())
+                .build();
+    }
 
     @Override
     public void inviteStudentsToClassRoom(
