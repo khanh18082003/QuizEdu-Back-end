@@ -372,10 +372,10 @@ public class QuizSessionServiceImpl implements IQuizSessionService {
 
   @Override
   public List<ScoreQuizSessionStudentResponse> getScoresByStudentId() {
-      CustomUserDetail userDetail = SecurityUtils.getUserDetail();
-      if (userDetail == null) {
-          throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
-      }
+    CustomUserDetail userDetail = SecurityUtils.getUserDetail();
+    if (userDetail == null) {
+      throw new QuizException(ErrorCode.MESSAGE_UNAUTHORIZED);
+    }
     return quizSessionRepository.findByStudentId(userDetail.getUser().getId());
   }
 }

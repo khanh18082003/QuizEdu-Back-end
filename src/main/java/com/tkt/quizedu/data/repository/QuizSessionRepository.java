@@ -71,6 +71,7 @@ public interface QuizSessionRepository extends BaseRepository<QuizSession, Strin
         "{ '$sort': { 'startTime': -1 } }"
       })
   List<ScoreQuizSessionStudentResponse> findByStudentId(String studentId);
+
   @Aggregation(pipeline = {"{ '$match': { 'class_id': ?0 } }"})
   List<QuizSession> totalQuizSessionByClassId(String classId);
 
