@@ -34,8 +34,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         .addEndpoint("/ws-session")
         .setAllowedOrigins(
             "http://localhost:5173",
-            "http://" + host + ":80",
-            "https://" + host + ":443",
+            "http://" + host + ":3000",
             "https://quiz-edu.io.vn")
         .withSockJS()
         .setHeartbeatTime(10000);

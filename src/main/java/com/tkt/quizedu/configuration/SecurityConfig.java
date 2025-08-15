@@ -80,8 +80,7 @@ public class SecurityConfig {
     configuration.setAllowedOrigins(
         List.of(
             "http://localhost:5173",
-            "https://" + host + ":443",
-            "http://" + host + ":80",
+            "http://" + host + ":3000",
             "https://quiz-edu.io.vn"));
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(List.of("*"));
