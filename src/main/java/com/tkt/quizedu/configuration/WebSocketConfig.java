@@ -32,7 +32,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry
         .addEndpoint("/ws-session")
-        .setAllowedOrigins("http://localhost:5173", "http://" + host + ":80", "https://" + host + ":443")
+        .setAllowedOrigins(
+            "http://localhost:5173",
+            "http://" + host + ":80",
+            "https://" + host + ":443",
+            "https://quiz-edu.io.vn")
         .withSockJS()
         .setHeartbeatTime(10000);
   }
