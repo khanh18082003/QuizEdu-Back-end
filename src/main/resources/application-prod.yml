@@ -37,7 +37,7 @@ openapi:
     api-docs: quiz-edu-api-docs
     title: Quiz-edu API
     version: v1.0
-    server: http://${HOST}:${server.port}/api/v1.0
+    server: https://quiz-edu.io.vn/api/v1.0
 
 springdoc:
   api-docs:
