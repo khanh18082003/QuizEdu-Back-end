@@ -30,6 +30,10 @@ spring:
     bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:29092}
   jackson:
     property-naming-strategy: SNAKE_CASE
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 30MB
 
 # swagger config
 openapi:

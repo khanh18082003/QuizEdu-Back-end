@@ -30,7 +30,10 @@ spring:
     bootstrap-servers: localhost:29092
   jackson:
     property-naming-strategy: SNAKE_CASE
-
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 30MB
 # swagger config
 openapi:
   service:

@@ -10,10 +10,6 @@ spring:
     name: quiz-edu
   profiles:
     active: @spring.profiles.active@
-  servlet:
-    multipart:
-      max-file-size: 25MB
-      max-request-size: 10MB
 
 management:
   endpoints:
