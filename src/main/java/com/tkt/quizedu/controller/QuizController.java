@@ -3,7 +3,6 @@ package com.tkt.quizedu.controller;
 import java.util.List;
 import java.util.UUID;
 
-import com.tkt.quizedu.data.constant.QuizType;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
