@@ -5,4 +5,7 @@ import com.tkt.quizedu.data.constant.QuizType;
 import lombok.Builder;
 
 @Builder
-public record AddQuizRequest(QuizType type, Object data) {}
+public record AddQuizRequest(
+    QuizType type,
+    MultipleChoiceQuizRequest multipleChoiceQuizRequest,
+    MatchingQuizRequest matchingQuizRequest) {}

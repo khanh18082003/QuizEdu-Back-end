@@ -68,7 +68,6 @@ public class ClassRoomServiceImpl implements IClassRoomService {
     classRoom.setName(classRoomRequest.name());
     classRoom.setDescription(classRoomRequest.description());
     classRoom.setActive(classRoomRequest.isActive());
-    classRoom.setAssignedQuizIds(classRoomRequest.assignedQuizIds());
 
     return classRoomMapper.toClassRoomResponse(classRoomRepository.save(classRoom));
   }

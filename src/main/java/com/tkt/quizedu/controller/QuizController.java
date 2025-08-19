@@ -176,7 +176,7 @@ public class QuizController {
   @PostMapping("/{quizId}/add")
   @ResponseStatus(HttpStatus.OK)
   SuccessApiResponse<QuizResponse> addQuizQuestion(
-      @PathVariable String quizId, @RequestBody @Valid AddQuizRequest request) {
+      @PathVariable String quizId, @ModelAttribute AddQuizRequest request) {
     QuizResponse response = quizService.addQuizQuestion(quizId, request);
     return SuccessApiResponse.<QuizResponse>builder()
         .code(ErrorCode.MESSAGE_SUCCESS.getCode())
